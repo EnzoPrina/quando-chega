@@ -3,7 +3,6 @@ import data from '../data/stops.json'
 import '../styles/stopDetails.css'
 import { getNextBus, formatTime } from '../utils/time'
 
-// 🔥 detectar fin de semana
 const isWeekend = () => {
   const day = new Date().getDay()
   return day === 0 || day === 6
@@ -20,7 +19,6 @@ export default function StopDetailPage() {
   let foundStop: any = null
   let linesInfo: any[] = []
 
-  // 🔥 buscar parada
   city?.lines.forEach((line) => {
     line.stops.forEach((stop) => {
       if (stop.number === id) {
@@ -37,13 +35,12 @@ export default function StopDetailPage() {
 
   if (!foundStop) return <p>Paragem não encontrada</p>
 
-  // 🔥 próximos buses
   const nextBuses = linesInfo
     .map((l) => {
       const next = getNextBus(l.schedules)
       return next ? { ...l, next } : null
     })
-    .filter(Boolean)
+    .filter(Boolean) as any[]
 
   const globalNext = nextBuses.sort(
     (a, b) => a.next.minutes - b.next.minutes
@@ -51,34 +48,24 @@ export default function StopDetailPage() {
 
   return (
     <div className="container">
-
-      {/* HEADER */}
       <div className="headerWrapper">
         <div className="header">
-
           <h1 className="stopName">{foundStop.name}</h1>
 
-          {/* 🔥 AVISO FIN DE SEMANA */}
           {noService && (
-            <div
-              style={{
-                marginBottom: 10,
-                color: '#ff6b6b',
-                fontWeight: 600,
-                fontSize: 13,
-              }}
-            >
+            <div style={{
+              marginBottom: 10,
+              color: '#ff6b6b',
+              fontWeight: 600,
+              fontSize: 13,
+            }}>
               Sem serviço ao fim de semana
             </div>
           )}
 
-          {/* 🔥 PRÓXIMO BUS */}
-          <div
-            className="nextBar"
-            style={{
-              borderLeftColor: globalNext?.color || '#4CAF50',
-            }}
-          >
+          <div className="nextBar" style={{
+            borderLeftColor: globalNext?.color || '#4CAF50',
+          }}>
             <span className="nextIcon">⏳</span>
 
             <div>
@@ -105,12 +92,14 @@ export default function StopDetailPage() {
         </div>
       </div>
 
-      {/* CONTENIDO */}
       <div className="scrollSection">
-
         <h3 className="sectionTitle">Linhas que passam aqui</h3>
 
-        <div style={{ display: 'flex', overflowX: 'auto', marginBottom: 20 }}>
+        <div style={{
+          display: 'flex',
+          overflowX: 'auto',
+          marginBottom: 20
+        }}>
           {linesInfo.map((l, i) => (
             <div
               key={i}
@@ -129,11 +118,7 @@ export default function StopDetailPage() {
 
           return (
             <div key={i} className="scheduleCard">
-
-              <div
-                className="lineTitle"
-                style={{ color: l.color }}
-              >
+              <div className="lineTitle" style={{ color: l.color }}>
                 Linha {l.line}
               </div>
 
@@ -158,7 +143,6 @@ export default function StopDetailPage() {
           )
         })}
 
-        {/* 🔥 BOTÓN PRO */}
         <button
           onClick={() => navigate('/')}
           style={{
@@ -166,7 +150,7 @@ export default function StopDetailPage() {
             padding: 14,
             borderRadius: 12,
             border: 'none',
-            background: '#0024d3',
+            background: '#5CB130',
             color: '#fff',
             width: '100%',
             fontWeight: 500,
@@ -175,7 +159,6 @@ export default function StopDetailPage() {
         >
           Voltar ao mapa
         </button>
-
       </div>
     </div>
   )

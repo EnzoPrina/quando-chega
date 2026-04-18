@@ -18,23 +18,23 @@ export default function LineSelector({ lines, selected, onSelect }: any) {
   )
 }
 
-const wrapper = {
+const wrapper: React.CSSProperties = {
   position: 'fixed',
   top: 12,
   left: 10,
   right: 10,
   display: 'flex',
   gap: 8,
-overflowX: 'auto' as const,
+  overflowX: 'auto',
   zIndex: 1000,
 }
 
-const button = {
+const button: React.CSSProperties = {
   padding: '8px 14px',
   borderRadius: 8,
   color: '#fff',
   fontWeight: 700,
   cursor: 'pointer',
   minWidth: 60,
-  textAlign: 'center' as const,
+  textAlign: 'center',
 }

@@ -12,7 +12,6 @@ export default function Header() {
 
   const [showProfileModal, setShowProfileModal] = useState(false)
 
-  // 🔥 cargar perfil
   useEffect(() => {
     const loadProfile = async () => {
       const user = auth.currentUser
@@ -23,9 +22,7 @@ export default function Header() {
 
       if (snap.exists()) {
         const data = snap.data()
-        setProfile(data)
 
-        // 🔥 si no tiene nacionalidad → mostrar modal
         if (!data.nationality) {
           setShowProfileModal(true)
         }
@@ -48,19 +45,14 @@ export default function Header() {
   return (
     <>
       <div style={styles.container}>
-        
-        {/* LOGO */}
         <div style={styles.left}>
           <img src={logo} style={styles.logoImg} />
         </div>
 
-        {/* USER */}
         <div style={styles.right}>
           {user && (
             <>
-              <span style={styles.user}>
-                {displayName}
-              </span>
+              <span style={styles.user}>{displayName}</span>
 
               <button onClick={handleLogout} style={styles.logout}>
                 ⎋
@@ -70,11 +62,9 @@ export default function Header() {
         </div>
       </div>
 
-      {/* 🔥 MODAL COMPLETAR PERFIL */}
       {showProfileModal && (
         <div style={modalStyles.overlay}>
           <div style={modalStyles.modal}>
-            
             <h3 style={modalStyles.title}>
               Completa o teu perfil 🌍
             </h3>
@@ -89,7 +79,6 @@ export default function Header() {
             >
               Completar agora
             </button>
-
           </div>
         </div>
       )}
@@ -111,12 +100,10 @@ const styles: any = {
     justifyContent: 'space-between',
     padding: '0 16px',
     zIndex: 2000,
-    borderBottom: '1px solid rgba(255,255,255,0.05)',
   },
   left: {
     display: 'flex',
     alignItems: 'center',
-    gap: 8,
   },
   logoImg: {
     width: 180,
@@ -162,11 +149,9 @@ const modalStyles: any = {
     borderRadius: 12,
     width: 260,
     textAlign: 'center',
-    border: '1px solid rgba(255,255,255,0.05)',
   },
   title: {
     color: '#fff',
-    marginBottom: 10,
   },
   text: {
     color: '#aaa',
@@ -177,10 +162,9 @@ const modalStyles: any = {
     background: '#5CB130',
     border: 'none',
     color: '#fff',
-    padding: '10px',
+    padding: 10,
     borderRadius: 8,
     width: '100%',
     cursor: 'pointer',
-    fontWeight: 500,
   },
 }

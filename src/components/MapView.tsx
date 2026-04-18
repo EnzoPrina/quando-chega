@@ -159,17 +159,17 @@ useEffect(() => {
         schedules: (stop as any).schedules,
       })
     } else {
-      groupedStops.push({
-        ...stop,
-        lines: [
-          {
-            line: stop.line,
-            color: stop.color,
-            order: stop.order,
-            schedules: stop.schedules,
-          },
-        ],
-      })
+groupedStops.push({
+  ...stop,
+  lines: [
+    {
+      line: stop.line,
+      color: stop.color,
+      order: stop.order,
+      schedules: (stop as any).schedules,
+    },
+  ],
+})
     }
   })
 

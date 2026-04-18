@@ -8,25 +8,13 @@ import StopDetailPage from './pages/StopDetailPage'
 import LoginPage from './pages/LoginPage'
 import CompleteProfilePage from './pages/CompleteProfilePage'
 
-import { doc, getDoc } from 'firebase/firestore'
-import { db } from './firebase'
-
 function App() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
-
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       setUser(u)
-
-      if (u) {
-        const ref = doc(db, 'users', u.uid)
-        const snap = await getDoc(ref)
-
-        setHasProfile(snap.exists())
-      }
-
       setLoading(false)
     })
 
