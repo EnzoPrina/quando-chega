@@ -10,7 +10,6 @@ export default function Header() {
   const navigate = useNavigate()
   const user = auth.currentUser
 
-  const [profile, setProfile] = useState<any>(null)
   const [showProfileModal, setShowProfileModal] = useState(false)
 
   // 🔥 cargar perfil

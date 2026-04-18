@@ -25,7 +25,7 @@ const wrapper = {
   right: 10,
   display: 'flex',
   gap: 8,
-  overflowX: 'auto',
+overflowX: 'auto' as const,
   zIndex: 1000,
 }
 

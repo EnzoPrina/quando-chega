@@ -156,7 +156,7 @@ useEffect(() => {
         line: stop.line,
         color: stop.color,
         order: stop.order,
-        schedules: stop.schedules,
+        schedules: (stop as any).schedules,
       })
     } else {
       groupedStops.push({
@@ -195,7 +195,7 @@ useEffect(() => {
 
       const nextTimes = stop.lines
         .map((l: any) => {
-          const next = getNextBus(l.schedules || [])
+          const next = getNextBus((l as any).schedules|| [])
           return next ? next.minutes : null
         })
         .filter(Boolean)
@@ -377,7 +377,7 @@ const bestStop = nearbyStops
           const ok = await requestPermission()
           if (!ok) return
 
-          const schedules = stop.lines[0]?.schedules || []
+          const schedules = (stop.lines[0] as any)?.schedules|| []
           scheduleSmartNotification(stop.name, schedules)
         }}
         style={{

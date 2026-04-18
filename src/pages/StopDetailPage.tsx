@@ -29,7 +29,7 @@ export default function StopDetailPage() {
         linesInfo.push({
           line: line.line,
           color: line.color,
-          schedules: stop.schedules || [],
+          schedules: (stop as any).schedules || [],
         })
       }
     })

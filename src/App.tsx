@@ -14,7 +14,7 @@ import { db } from './firebase'
 function App() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [hasProfile, setHasProfile] = useState<boolean | null>(null)
+
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
