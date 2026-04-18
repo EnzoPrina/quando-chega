@@ -1,0 +1,71 @@
+.favorites-wrapper {
+  position: fixed;
+  top: 90px;
+  left: 0;
+  right: 0;
+  z-index: 1200;
+
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 0 16px;
+
+  scrollbar-width: none;
+}
+
+.favorites-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.favorite-card {
+  min-width: 160px;
+  max-width: 180px; /* 🔥 limite */
+  background: rgba(20,20,20,0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 10px;
+  cursor: pointer;
+
+  display: flex;
+  gap: 10px;
+  align-items: center;
+
+  border: 1px solid #2a2a2a;
+  overflow: hidden; /* 🔥 clave */
+}
+
+.favorite-card:hover {
+  transform: scale(1.03);
+}
+
+.favorite-star {
+  color: #FFD700;
+  font-size: 18px;
+}
+
+.favorite-name {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.favorite-lines {
+  margin-top: 4px;
+  display: flex;
+  gap: 4px;
+
+  overflow-x: auto; /* 🔥 scroll */
+  max-width: 120px;
+
+  scrollbar-width: none;
+}
+
+.favorite-lines::-webkit-scrollbar {
+  display: none;
+}
+.badge {
+  padding: 3px 6px;
+  border-radius: 6px;
+  font-size: 11px;
+  white-space: nowrap; /* 🔥 evita salto */
+}

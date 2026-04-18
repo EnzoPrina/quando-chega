@@ -1,0 +1,20 @@
+{
+  "name": "QuandoChega",
+  "short_name": "Quando",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0D0D0D",
+  "theme_color": "#5CB130",
+  "icons": [
+    {
+      "src": "/iconlogo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

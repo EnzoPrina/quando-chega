@@ -1,0 +1,47 @@
+.cards-wrapper {
+  position: fixed; /* 🔥 CLAVE */
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 0 16px;
+  z-index: 1000; /* 🔥 CLAVE */
+}
+
+.card {
+  min-width: 200px;
+  background: rgba(20,20,20,0.7);
+  backdrop-filter: blur(12px);
+  color: white;
+  border-radius: 18px;
+  padding: 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: scale(1.04);
+}
+
+.lines {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+/* 📱 MOBILE */
+@media (max-width: 600px) {
+  .card {
+    min-width: 180px;
+  }
+}

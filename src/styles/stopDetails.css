@@ -1,0 +1,124 @@
+/* 🔥 FONDO GENERAL */
+.container {
+  min-height: 100vh;
+  background-color: #0D0D0D;
+  color: white;
+}
+
+/* 🔥 HEADER */
+.headerWrapper {
+  background-color: #236821;
+}
+
+.header {
+  padding: 10px 20px 22px;
+}
+
+.stopName {
+  font-size: 26px;
+  font-weight: 900;
+  margin-bottom: 12px;
+}
+
+/* 🔥 BARRA PROXIMO BUS */
+.nextBar {
+  display: flex;
+  align-items: center;
+  background-color: #1A1A1A;
+  padding: 12px;
+  border-radius: 12px;
+  border-left: 6px solid #4CAF50;
+}
+
+.nextIcon {
+  font-size: 26px;
+  margin-right: 10px;
+}
+
+.nextTextLabel {
+  color: #e6e6e6;
+  font-size: 14px;
+}
+
+.nextMinutes {
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.nextHour {
+  font-size: 16px;
+  color: #ccc;
+}
+
+/* 🔥 CONTENIDO */
+.scrollSection {
+  background-color: #0D0D0D;
+  margin-top: -18px;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  padding: 20px;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #e0e0e0;
+}
+
+/* 🔥 BOTONES LINEA */
+.lineTagHorizontal {
+  padding: 10px 20px;
+  border-radius: 20px;
+  margin-right: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* 🔥 TARJETAS */
+.scheduleCard {
+  background-color: #212121;
+  padding: 18px;
+  border-radius: 14px;
+  margin-top: 20px;
+}
+
+.lineTitle {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.nextInsideLine {
+  color: #bdbdbd;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+/* 🔥 HORARIOS */
+.hourBlock {
+  margin-bottom: 16px;
+}
+
+.hourHeader {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.hourRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hourChip {
+  background-color: #3a3a3a;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+.hourText {
+  font-weight: 600;
+  font-size: 14px;
+}
