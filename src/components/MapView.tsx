@@ -176,7 +176,7 @@ export default function MapView() {
           const next = getNextBus(l.schedules || [])
           return next ? next.minutes : null
         })
-        .filter((n) => n !== null)
+.filter((n: number | null): n is number => n !== null)
 
       const next =
         nextTimes.length > 0 ? Math.min(...nextTimes) : null
