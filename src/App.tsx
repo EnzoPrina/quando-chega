@@ -8,6 +8,8 @@ import StopDetailPage from './pages/StopDetailPage'
 import LoginPage from './pages/LoginPage'
 import CompleteProfilePage from './pages/CompleteProfilePage'
 
+import TripPlanner from './pages/TripPlanner'
+
 function App() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -45,6 +47,7 @@ function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/stop/:id" element={<StopDetailPage />} />
       <Route path="/complete-profile" element={<CompleteProfilePage />} />
+      <Route path="/planner" element={<TripPlanner />} />
     </Routes>
   )
 }

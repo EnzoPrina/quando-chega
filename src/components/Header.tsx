@@ -99,7 +99,7 @@ const styles: any = {
     left: 0,
     right: 0,
     height: 56,
-    background: 'rgba(173, 173, 173, 0.7)',
+    background: 'rgba(20, 20, 20, 0.87)',
     backdropFilter: 'blur(2px)',
     display: 'flex',
     alignItems: 'center',
