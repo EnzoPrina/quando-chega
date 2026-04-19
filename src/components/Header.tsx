@@ -11,6 +11,7 @@ export default function Header() {
   const user = auth.currentUser
 
   const [showProfileModal, setShowProfileModal] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -45,21 +46,26 @@ export default function Header() {
   return (
     <>
       <div style={styles.container}>
-        <div style={styles.left}>
-          <img src={logo} style={styles.logoImg} />
+
+        {/* LOGO CENTRADO */}
+        <img src={logo} style={styles.logo} />
+
+        {/* ICONO USUARIO */}
+        <div style={styles.userIcon} onClick={() => setMenuOpen(!menuOpen)}>
+          👤
         </div>
 
-        <div style={styles.right}>
-          {user && (
-            <>
-              <span style={styles.user}>{displayName}</span>
+        {/* MENU */}
+        {menuOpen && (
+          <div style={styles.menu}>
+            <div style={styles.menuName}>{displayName}</div>
 
-              <button onClick={handleLogout} style={styles.logout}>
-                ⎋
-              </button>
-            </>
-          )}
-        </div>
+            <button onClick={handleLogout} style={styles.menuButton}>
+              Sair
+            </button>
+          </div>
+        )}
+
       </div>
 
       {showProfileModal && (
@@ -93,39 +99,46 @@ const styles: any = {
     left: 0,
     right: 0,
     height: 56,
-    background: 'rgba(13,13,13,0.7)',
-    backdropFilter: 'blur(10px)',
+    background: 'rgba(173, 173, 173, 0.7)',
+    backdropFilter: 'blur(2px)',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '0 16px',
+    justifyContent: 'center',
     zIndex: 2000,
   },
-  left: {
-    display: 'flex',
-    alignItems: 'center',
+  logo: {
+    width: 160,
   },
-  logoImg: {
-    width: 180,
-    height: 38,
+  userIcon: {
+    position: 'absolute',
+    right: 16,
+    fontSize: 20,
+    cursor: 'pointer',
+    color: '#fff',
   },
-  right: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
+  menu: {
+    position: 'absolute',
+    top: 60,
+    right: 10,
+    background: '#1a1a1a',
+    padding: 12,
+    borderRadius: 10,
+    width: 140,
+    boxShadow: '0 5px 20px rgba(0,0,0,0.4)',
   },
-  user: {
-    color: '#aaa',
+  menuName: {
+    color: '#fff',
+    marginBottom: 8,
     fontSize: 12,
   },
-  logout: {
-    padding: '3px 10px',
+  menuButton: {
+    width: '100%',
+    padding: 6,
     borderRadius: 6,
     border: 'none',
-    background: '#1f1f1f',
+    background: '#5CB130',
     color: '#fff',
     cursor: 'pointer',
-    fontSize: 24,
   },
 }
 

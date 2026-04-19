@@ -17,6 +17,10 @@ import { requestPushToken } from '../utils/push'
 import { doc, setDoc } from 'firebase/firestore'
 import { db, auth } from '../firebase'
 
+const isDay = () => {
+  const hour = new Date().getHours()
+  return hour >= 7 && hour <= 19
+}
 // 🔥 fin de semana
 const isWeekend = () => {
   const day = new Date().getDay()
@@ -234,17 +238,36 @@ const bestStop = nearbyStops
         display: 'flex',
         justifyContent: 'space-between',
       }}>
-        <span style={{ color: '#ccc' }}>
-          {nearbyStops.length === 0
-            ? 'Nenhuma paragem próxima'
-            : `${nearbyStops.length} paragens próximas`}
-        </span>
+<span style={{
+  background: 'rgba(92, 177, 48, 0.15)',
+  color: '#5CB130',
+  padding: '4px 10px',
+  borderRadius: 999,
+  fontWeight: 600,
+  fontSize: 12,
+  border: '1px solid rgba(92, 177, 48, 0.3)',
+  backdropFilter: 'blur(6px)',
+}}>
+  {nearbyStops.length === 0
+    ? 'Nenhuma próxima'
+    : `${nearbyStops.length} paragens próximas`}
+</span>
 
-        {noService && (
-          <span style={{ color: '#ff6b6b', fontWeight: 600 }}>
-            Sem serviço
-          </span>
-        )}
+{noService && (
+  <span style={{
+  background: 'rgba(255, 80, 80, 0.15)',
+  color: '#ff4d4d',
+  padding: '4px 10px',
+  borderRadius: 999,
+  fontWeight: 600,
+  fontSize: 12,
+  border: '1px solid rgba(255, 80, 80, 0.3)',
+  backdropFilter: 'blur(6px)',
+  animation: 'pulseSoft 2s infinite',
+}}>
+    ⚠ Sem serviço
+  </span>
+)}
       </div>
 
       <FavoriteStops
@@ -266,10 +289,14 @@ const bestStop = nearbyStops
       />
 
       <MapContainer center={position} zoom={17} style={{ height: '100vh' }}>
-        <TileLayer
-          attribution="&copy; OpenStreetMap &copy; CARTO"
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-        />
+<TileLayer
+  attribution="&copy; OpenStreetMap &copy; CARTO"
+  url={
+    isDay()
+      ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+      : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+  }
+/>
 
         <FlyTo position={selectedStop} />
 
