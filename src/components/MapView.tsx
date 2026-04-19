@@ -241,7 +241,7 @@ const bestStop = nearbyStops
 <span style={{
   background: 'rgba(92, 177, 48, 0.15)',
   color: '#5CB130',
-  padding: '4px 10px',
+  padding: '4px 50px',
   borderRadius: 999,
   fontWeight: 600,
   fontSize: 12,
