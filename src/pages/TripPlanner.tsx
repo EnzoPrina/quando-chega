@@ -4,11 +4,6 @@ import data from '../data/stops.json'
 import { getNextBus } from '../utils/time'
 import places from '../data/places.json'
 
-const isWeekend = () => {
-  const day = new Date().getDay()
-  return day === 0 || day === 6
-}
-
 const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
   const R = 6371e3
   const φ1 = lat1 * Math.PI / 180
@@ -62,14 +57,6 @@ export default function TripPlanner() {
   const lng = params.get('lng')
   const isMapSelection = lat && lng
 
-  const formatTime = (min: number) => {
-    if (!min && min !== 0) return '-'
-    if (min < 60) return `${min} min`
-    const h = Math.floor(min / 60)
-    const m = min % 60
-    return `${h}h ${m}min`
-  }
-
   const city = data.cities.find((c) => c.name === 'Bragança')
 
   // Obtener GPS
@@ -84,7 +71,6 @@ export default function TripPlanner() {
         },
         (error) => {
           console.error('Error GPS:', error)
-          // Usar ubicación por defecto (centro de Bragança)
           setUserLocation({ lat: 41.8065, lng: -6.7562 })
         }
       )
@@ -93,7 +79,7 @@ export default function TripPlanner() {
     }
   }, [])
 
-  // 🔥 CORREGIDO: Buscar destino cuando hay selección del mapa
+  // Buscar destino cuando hay selección del mapa
   useEffect(() => {
     if (!isMapSelection || !city) return
     
@@ -177,7 +163,7 @@ export default function TripPlanner() {
       let minDistance = Infinity
       
       city.lines.forEach(line => {
-        line.stops.forEach(stop => {
+        line.stops.forEach((stop: any) => {
           const distance = getDistance(
             target.coordinates.latitude,
             target.coordinates.longitude,
@@ -207,7 +193,7 @@ export default function TripPlanner() {
     const linesToDestination: any[] = []
     
     city.lines.forEach(line => {
-      const hasDestination = line.stops.some(stop => stop.number === finalDestination.number)
+      const hasDestination = line.stops.some((stop: any) => stop.number === finalDestination.number)
       if (hasDestination) {
         linesToDestination.push(line)
       }
@@ -224,7 +210,7 @@ export default function TripPlanner() {
     linesToDestination.forEach(line => {
       const stopsInOrder = line.stops
       
-      stopsInOrder.forEach(stop => {
+      stopsInOrder.forEach((stop: any) => {
         // Verificar que la parada está antes del destino
         const isBefore = isStopBeforeDestination(
           stopsInOrder,
@@ -242,7 +228,7 @@ export default function TripPlanner() {
           stop.coordinates.longitude
         )
         
-        if (distanceToUser > 800) return // Máximo 800m
+        if (distanceToUser > 800) return
         
         const schedules = (stop as any).schedules || []
         const nextBus = getNextBus(schedules)
@@ -304,6 +290,14 @@ export default function TripPlanner() {
     })
 
     setSuggestions([])
+  }
+
+  const formatTime = (min: number) => {
+    if (!min && min !== 0) return '-'
+    if (min < 60) return `${min} min`
+    const h = Math.floor(min / 60)
+    const m = min % 60
+    return `${h}h ${m}min`
   }
 
   return (
@@ -431,61 +425,61 @@ export default function TripPlanner() {
                 ⏱️ Tempo total {result.best.totalTime} min
               </div>
             </div>
-<div
-  onClick={() => setShowSchedules(!showSchedules)}
-  style={{
-    marginTop: 10,
-    fontSize: 12,
-    color: '#aaa',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 6
-  }}
->
-  <span style={{
-    transform: showSchedules ? 'rotate(180deg)' : 'rotate(0deg)',
-    transition: '0.2s'
-  }}>
-    ▾
-  </span>
-  Ver horários desta paragem
-</div>
-{showSchedules && (
-  <div style={{
-    marginTop: 10,
-    background: '#141414',
-    padding: 10,
-    borderRadius: 10
-  }}>
-    <div style={{
-      color: '#5CB130',
-      fontWeight: 600,
-      marginBottom: 8,
-      fontSize: 13
-    }}>
-      Linha {result.best.line}
-    </div>
+            <div
+              onClick={() => setShowSchedules(!showSchedules)}
+              style={{
+                marginTop: 10,
+                fontSize: 12,
+                color: '#aaa',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6
+              }}
+            >
+              <span style={{
+                transform: showSchedules ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: '0.2s'
+              }}>
+                ▾
+              </span>
+              Ver horários desta paragem
+            </div>
+            {showSchedules && (
+              <div style={{
+                marginTop: 10,
+                background: '#141414',
+                padding: 10,
+                borderRadius: 10
+              }}>
+                <div style={{
+                  color: '#5CB130',
+                  fontWeight: 600,
+                  marginBottom: 8,
+                  fontSize: 13
+                }}>
+                  Linha {result.best.line}
+                </div>
 
-    <div style={{
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: 6
-    }}>
-      {(result.best.stop.schedules || []).map((time: string, i: number) => (
-        <div key={i} style={{
-          background: '#2a2a2a',
-          padding: '6px 10px',
-          borderRadius: 6,
-          fontSize: 12,
-          color: '#fff'
-        }}>
-          {time}
-        </div>
-      ))}
-    </div>
-  </div>
-)}
+                <div style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 6
+                }}>
+                  {(result.best.stop.schedules || []).map((time: string, i: number) => (
+                    <div key={i} style={{
+                      background: '#2a2a2a',
+                      padding: '6px 10px',
+                      borderRadius: 6,
+                      fontSize: 12,
+                      color: '#fff'
+                    }}>
+                      {time}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <button
               onClick={() => navigate(`/?lat=${result.best.stop.coordinates.latitude}&lng=${result.best.stop.coordinates.longitude}`)}
               style={{
@@ -512,57 +506,53 @@ export default function TripPlanner() {
               
               {result.alternatives.map((alt: any, i: number) => (
                 <div key={i} style={{
-  background: '#141414',
-  padding: 12,
-  borderRadius: 10,
-  marginTop: 8,
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center'
-}}>
+                  background: '#141414',
+                  padding: 12,
+                  borderRadius: 10,
+                  marginTop: 8,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                  <div>
+                    <div style={{ color: '#fff', fontSize: 14 }}>
+                      {alt.stop.name}
+                    </div>
 
-  {/* INFO */}
-  <div>
-    <div style={{ color: '#fff', fontSize: 14 }}>
-      {alt.stop.name}
-    </div>
+                    <div style={{ display: 'flex', gap: 12, marginTop: 6, flexWrap: 'wrap' }}>
+                      <div style={{ background: alt.color, padding: '2px 6px', borderRadius: 4, fontSize: 11 }}>
+                        {alt.line}
+                      </div>
+                      <div style={{ color: '#aaa', fontSize: 12 }}>
+                        🚶 {alt.walkingToStop} min
+                      </div>
+                      <div style={{ color: '#aaa', fontSize: 12 }}>
+                        🚌 {alt.waitingTime} min
+                      </div>
+                      <div style={{ color: '#5CB130', fontSize: 12, fontWeight: 600 }}>
+                        Total: {alt.totalTime} min
+                      </div>
+                    </div>
+                  </div>
 
-    <div style={{ display: 'flex', gap: 12, marginTop: 6, flexWrap: 'wrap' }}>
-      <div style={{ background: alt.color, padding: '2px 6px', borderRadius: 4, fontSize: 11 }}>
-        {alt.line}
-      </div>
-      <div style={{ color: '#aaa', fontSize: 12 }}>
-        🚶 {alt.walkingToStop} min
-      </div>
-      <div style={{ color: '#aaa', fontSize: 12 }}>
-        🚌 {alt.waitingTime} min
-      </div>
-      <div style={{ color: '#5CB130', fontSize: 12, fontWeight: 600 }}>
-        Total: {alt.totalTime} min
-      </div>
-    </div>
-  </div>
-
-  {/* BOTÓN IR */}
-  <button
-    onClick={() =>
-      navigate(`/?lat=${alt.stop.coordinates.latitude}&lng=${alt.stop.coordinates.longitude}`)
-    }
-    style={{
-      background: '#5CB130',
-      border: 'none',
-      borderRadius: 8,
-      padding: '8px 12px',
-      color: '#fff',
-      fontSize: 12,
-      fontWeight: 600,
-      cursor: 'pointer'
-    }}
-  >
-    Ir
-  </button>
-
-</div>
+                  <button
+                    onClick={() =>
+                      navigate(`/?lat=${alt.stop.coordinates.latitude}&lng=${alt.stop.coordinates.longitude}`)
+                    }
+                    style={{
+                      background: '#5CB130',
+                      border: 'none',
+                      borderRadius: 8,
+                      padding: '8px 12px',
+                      color: '#fff',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Ir
+                  </button>
+                </div>
               ))}
             </div>
           )}
