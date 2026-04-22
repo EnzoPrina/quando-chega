@@ -9,6 +9,7 @@
 }
 
 .loading-logo {
+  
   width: 300px;
   margin-bottom: 20px;
   opacity: 0.9;
@@ -34,4 +35,29 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.loading-subtext {
+  color: #ccc;
+  font-size: 14px;
+  margin-top: 10px;
+  text-align: center;
+  max-width: 260px;
+}
+
+.dots {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: #666;
+  border-radius: 50%;
+}
+
+.dot.active {
+  background: white;
 }

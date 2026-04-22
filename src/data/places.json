@@ -1,0 +1,74 @@
+[
+  {
+    "name": "Hospital de Bragança",
+    "coordinates": { "latitude": 41.80232809110332, "longitude": -6.767737689334365 }
+  },
+  {
+    "name": "Centro de Saúde de Bragança",
+    "coordinates": { "latitude": 41.80296556435759,  "longitude": -6.764993088748482 }
+  },
+  {
+    "name": "Pingo Doce Bragança",
+    "coordinates": { "latitude": 41.78804420274025, "longitude": -6.778633584657435 }
+  },
+  {
+    "name": "Continente Modelo",
+    "coordinates": { "latitude": 41.80394311706236,  "longitude": -6.787721111126202 }
+  },
+  {
+    "name": "Lidl Bragança",
+    "coordinates": { "latitude": 41.81081998757075,  "longitude": -6.761780002826455 }
+  },
+  {
+    "name": "Minipreço Bragança - Av Sá Carneiro",
+    "coordinates": { "latitude": 41.804340432717574,  "longitude": -6.760664379322855 }
+  }, {
+    "name": "Minipreço Bragança ",
+    "coordinates": { "latitude": 41.793398853148986,   "longitude":-6.769247448018899 }
+  },
+  {
+    "name": "Intermarché Bragança",
+    "coordinates": { "latitude": 41.815606971252926,  "longitude": -6.762989273990353 }
+  },
+  {
+    "name": "Parque do Eixo Atlântico",
+    "coordinates": { "latitude": 41.80440079046767,  "longitude": -6.773226444887555}
+  },
+  {
+    "name": "Castelo de Bragança",
+    "coordinates": { "latitude": 41.804164455374284,  "longitude": -6.749293504677807 }
+  },
+  {
+    "name": "Instituto Politécnico de Bragança",
+    "coordinates": { "latitude": 41.79479123254792,  "longitude": -6.768445193014418 }
+  },{
+    "name": "Instituto Politécnico de Bragança - Escola Superior Agrária",
+    "coordinates": { "latitude": 41.79759072544232,   "longitude": -6.766471079819013 }
+  },
+  {
+    "name": "Estádio Municipal de Bragança",
+    "coordinates": { "latitude": 41.80347425954687,  "longitude": -6.769997666586551 }
+  },
+
+  {
+    "name": "Câmara Municipal de Bragança",
+    "coordinates": { "latitude":41.80538935062161,  "longitude": -6.76481353166251 }
+  },
+  {
+    "name": "Shopping Bragança",
+    "coordinates": { "latitude": 41.8078903539004,  "longitude": -6.760324131662453 }
+  },
+
+  {
+    "name": "Centro de Arte Contemporânea Graça Morais",
+    "coordinates": { "latitude": 41.80608656858444,  "longitude": -6.75600670282667 }
+  },
+  {
+    "name": "Igreja Sé Catedral de Bragança",
+    "coordinates": { "latitude": 41.805647742647366,  "longitude": -6.762088396526338 }
+  },
+  {
+    "name": "Cantina (IPB)",
+    "coordinates": { "latitude": 41.799212842394596,  "longitude": -6.769960479201317}
+  }
+]
