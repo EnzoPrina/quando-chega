@@ -25,7 +25,7 @@ const isDay = () => {
   return hour >= 7 && hour <= 19
 }
 
-function MapClickHandler({ onSelect }: any) {
+function MapClickHandler({ onSelect }: { onSelect: (latlng: L.LatLng) => void }) {
   useMapEvents({
     contextmenu(e) {
       onSelect(e.latlng)
@@ -73,7 +73,6 @@ function FlyTo({ position }: { position: [number, number] | null }) {
 // 🔥 COMPONENTE POPUP MEJORADO
 function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip }: any) {
   const [showAllSchedules, setShowAllSchedules] = useState(false)
-  const [selectedLineForSchedule, setSelectedLineForSchedule] = useState<string | null>(null)
   
   // Encontrar TODAS las líneas que pasan por esta parada
   const getLinesForStop = () => {
@@ -120,7 +119,7 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip 
         schedules,
         stopInfo: lineInfo.stop
       }
-    }).filter(bus => bus.nextBus)
+    }).filter((bus): bus is { line: string; color: string; nextBus: NonNullable<ReturnType<typeof getNextBus>>; schedules: any[]; stopInfo: any } => bus.nextBus !== null)
   }
   
   const nextBuses = getNextBusesForStop()
@@ -133,7 +132,7 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip 
       // Destinos después de esta parada
       const futureStops = lineInfo.allStops.slice(lineInfo.stopIndex + 1)
       
-      futureStops.forEach(futureStop => {
+      futureStops.forEach((futureStop: any) => {
         if (!destinations.find(d => d.name === futureStop.name)) {
           destinations.push({
             ...futureStop,
@@ -634,7 +633,7 @@ export default function MapView() {
 
       <MapContainer center={position} zoom={17} style={{ height: '100vh' }}>
         <MapClickHandler
-          onSelect={(latlng: any) =>
+          onSelect={(latlng: L.LatLng) =>
             navigate(`/planner?lat=${latlng.lat}&lng=${latlng.lng}`)
           }
         />
