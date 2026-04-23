@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { auth, db } from '../firebase'
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore'
+import { doc, getDoc, setDoc } from 'firebase/firestore'  // 🔥 removido updateDoc
 import { useNavigate } from 'react-router-dom'
 import Select from 'react-select'
 
