@@ -39,25 +39,6 @@ const userIcon = L.divIcon({
   html: `<div style="width:18px;height:18px;background:#00d4ff;border-radius:50%;border:3px solid white;box-shadow:0 0 10px rgba(0,212,255,0.5);"></div>`,
 })
 
-const createCustomIcon = (color: string, number?: number, isFav?: boolean) =>
-  L.divIcon({
-    className: '',
-    html: `<div style="
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      width:28px;
-      height:28px;
-      background:${isFav ? '#FFD700' : color};
-      border-radius:50%;
-      border:3px solid white;
-      font-size:12px;
-      font-weight:700;
-      color:${isFav ? '#000' : '#fff'};
-      box-shadow:0 2px 8px rgba(0,0,0,0.2);
-    ">${number ?? ''}</div>`,
-  })
-
 function FlyTo({ position }: { position: [number, number] | null }) {
   const map = useMap()
 
@@ -70,11 +51,10 @@ function FlyTo({ position }: { position: [number, number] | null }) {
   return null
 }
 
-// 🔥 COMPONENTE POPUP MEJORADO
-function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip }: any) {
+// 🔥 COMPONENTE POPUP MEJORADO Y RESPONSIVO
+function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip, isMobile }: any) {
   const [showAllSchedules, setShowAllSchedules] = useState(false)
   
-  // Encontrar TODAS las líneas que pasan por esta parada
   const getLinesForStop = () => {
     const lines: any[] = []
     
@@ -85,7 +65,6 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip 
       )
       
       if (stopInLine) {
-        // Encontrar el índice de esta parada en la línea
         const stopIndex = line.stops.findIndex((s: any) => 
           Math.abs(s.coordinates.latitude - stop.coordinates.latitude) < 0.0001 &&
           Math.abs(s.coordinates.longitude - stop.coordinates.longitude) < 0.0001
@@ -106,7 +85,6 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip 
   
   const linesForStop = getLinesForStop()
   
-  // Obtener próximos buses para cada línea
   const getNextBusesForStop = () => {
     return linesForStop.map(lineInfo => {
       const schedules = lineInfo.stop.schedules || []
@@ -124,12 +102,10 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip 
   
   const nextBuses = getNextBusesForStop()
   
-  // Destinos disponibles desde esta parada
   const getAvailableDestinations = () => {
     const destinations: any[] = []
     
     linesForStop.forEach(lineInfo => {
-      // Destinos después de esta parada
       const futureStops = lineInfo.allStops.slice(lineInfo.stopIndex + 1)
       
       futureStops.forEach((futureStop: any) => {
@@ -143,25 +119,22 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip 
       })
     })
     
-    return destinations.slice(0, 6)
+    return destinations.slice(0, isMobile ? 3 : 6)
   }
   
   const destinations = getAvailableDestinations()
   const isFav = favorites.includes(stop.number)
-  
-  // Obtener todas las líneas como string para el popup
   const allLines = linesForStop.map(l => l.line).join(', ')
   
   return (
     <div style={{ 
       background: '#1a1a1a', 
-      padding: 12, 
+      padding: isMobile ? 10 : 12, 
       borderRadius: 12, 
-      minWidth: 280,
-      maxWidth: 340,
+      minWidth: isMobile ? 240 : 280,
+      maxWidth: isMobile ? 300 : 340,
       fontFamily: 'system-ui, -apple-system, sans-serif'
     }}>
-      {/* Header */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
@@ -171,10 +144,10 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip 
         paddingBottom: 8
       }}>
         <div>
-          <div style={{ color: '#fff', fontWeight: 700, fontSize: 15 }}>
+          <div style={{ color: '#fff', fontWeight: 700, fontSize: isMobile ? 13 : 15 }}>
             🚏 {stop.name}
           </div>
-          <div style={{ color: '#aaa', fontSize: 10, marginTop: 2 }}>
+          <div style={{ color: '#aaa', fontSize: 9, marginTop: 2 }}>
             Líneas: {allLines}
           </div>
         </div>
@@ -185,10 +158,10 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip 
             style={{
               background: 'transparent',
               border: 'none',
-              fontSize: 20,
+              fontSize: isMobile ? 18 : 20,
               cursor: 'pointer',
               color: isFav ? '#FFD700' : '#666',
-              padding: '4px 6px',
+              padding: isMobile ? '6px 8px' : '4px 6px',
               borderRadius: 6,
               transition: '0.2s'
             }}
@@ -201,7 +174,6 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip 
             onClick={async () => {
               const ok = await requestPermission()
               if (!ok) return
-              // Notificar para todas las líneas
               nextBuses.forEach(bus => {
                 scheduleSmartNotification(`${stop.name} - Linha ${bus.line}`, bus.schedules)
               })
@@ -209,10 +181,10 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip 
             style={{
               background: 'transparent',
               border: 'none',
-              fontSize: 16,
+              fontSize: isMobile ? 18 : 16,
               cursor: 'pointer',
               color: '#5CB130',
-              padding: '4px 6px',
+              padding: isMobile ? '6px 8px' : '4px 6px',
               borderRadius: 6
             }}
             title="Notificar quando o ônibus chegar"
@@ -222,7 +194,6 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip 
         </div>
       </div>
       
-      {/* Próximos buses */}
       <div style={{ marginBottom: 12 }}>
         <div style={{ color: '#aaa', fontSize: 10, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>
           🚌 Próximos autocarros
@@ -237,34 +208,36 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip 
         {nextBuses.map((bus, idx) => (
           <div key={idx} style={{
             background: '#0D0D0D',
-            padding: 8,
+            padding: isMobile ? 6 : 8,
             borderRadius: 8,
             marginBottom: 6,
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center'
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 6
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
               <div style={{
                 background: bus.color,
-                width: 30,
-                height: 30,
+                width: isMobile ? 28 : 30,
+                height: isMobile ? 28 : 30,
                 borderRadius: 6,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontWeight: 700,
-                fontSize: 12,
+                fontSize: isMobile ? 10 : 12,
                 color: '#fff'
               }}>
                 {bus.line}
               </div>
               <div>
-                <div style={{ color: bus.nextBus.minutes === 0 ? '#5CB130' : '#fff', fontSize: 14, fontWeight: 600 }}>
+                <div style={{ color: bus.nextBus.minutes === 0 ? '#5CB130' : '#fff', fontSize: isMobile ? 12 : 14, fontWeight: 600 }}>
                   {bus.nextBus.minutes === 0 ? '🟢 A chegar' : `⏱️ ${bus.nextBus.minutes} min`}
                 </div>
                 {bus.nextBus.time && (
-                  <div style={{ color: '#666', fontSize: 10 }}>
+                  <div style={{ color: '#666', fontSize: 9 }}>
                     {bus.nextBus.time}
                   </div>
                 )}
@@ -277,12 +250,13 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip 
                 background: bus.color,
                 border: 'none',
                 borderRadius: 6,
-                padding: '6px 12px',
+                padding: isMobile ? '6px 12px' : '6px 12px',
                 color: '#fff',
-                fontSize: 11,
+                fontSize: isMobile ? 10 : 11,
                 fontWeight: 600,
                 cursor: 'pointer',
-                transition: '0.2s'
+                transition: '0.2s',
+                minWidth: isMobile ? 60 : 'auto'
               }}
             >
               Planear
@@ -291,7 +265,6 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip 
         ))}
       </div>
       
-      {/* Ver todos los horarios */}
       {nextBuses.length > 0 && (
         <>
           <div 
@@ -337,20 +310,20 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip 
                       Linha {lineInfo.line}
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      {schedules.slice(0, 8).map((time: string, i: number) => (
+                      {schedules.slice(0, isMobile ? 6 : 8).map((time: string, i: number) => (
                         <div key={i} style={{
                           background: '#2a2a2a',
                           padding: '4px 8px',
                           borderRadius: 4,
-                          fontSize: 10,
+                          fontSize: 9,
                           color: '#ddd'
                         }}>
                           {time}
                         </div>
                       ))}
-                      {schedules.length > 8 && (
+                      {schedules.length > (isMobile ? 6 : 8) && (
                         <div style={{ color: '#666', fontSize: 10, padding: '4px 8px' }}>
-                          +{schedules.length - 8} más
+                          +{schedules.length - (isMobile ? 6 : 8)} más
                         </div>
                       )}
                     </div>
@@ -362,7 +335,6 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip 
         </>
       )}
       
-      {/* Destinos populares */}
       {destinations.length > 0 && (
         <div style={{ marginTop: 8, borderTop: '1px solid #333', paddingTop: 10 }}>
           <div style={{ color: '#aaa', fontSize: 10, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>
@@ -370,16 +342,18 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip 
           </div>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {destinations.slice(0, 4).map((dest, idx) => (
+            {destinations.slice(0, isMobile ? 3 : 4).map((dest, idx) => (
               <div key={idx} style={{
                 background: '#0D0D0D',
                 padding: '6px 10px',
                 borderRadius: 6,
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'center'
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 6
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
                   <div style={{
                     background: dest.color,
                     width: 20,
@@ -394,8 +368,8 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip 
                   }}>
                     {dest.line}
                   </div>
-                  <div style={{ color: '#ddd', fontSize: 12 }}>
-                    {dest.name}
+                  <div style={{ color: '#ddd', fontSize: isMobile ? 10 : 12 }}>
+                    {dest.name.length > 25 ? dest.name.substring(0, 22) + '...' : dest.name}
                   </div>
                 </div>
                 
@@ -419,12 +393,11 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip 
         </div>
       )}
       
-      {/* Botón ver detalles */}
       <button
         onClick={() => onPlanTrip(stop.coordinates.latitude, stop.coordinates.longitude)}
         style={{
           marginTop: 12,
-          padding: 8,
+          padding: isMobile ? 10 : 8,
           borderRadius: 8,
           background: '#5CB130',
           color: '#fff',
@@ -432,7 +405,7 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip 
           fontWeight: 600,
           border: 'none',
           cursor: 'pointer',
-          fontSize: 12
+          fontSize: isMobile ? 13 : 12
         }}
       >
         🧭 Planear viagem desde aquí
@@ -444,17 +417,26 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip 
 export default function MapView() {
   const [position, setPosition] = useState<[number, number]>(DEFAULT_POSITION)
   const [loadingLocation, setLoadingLocation] = useState(true)
-
   const [selectedStop, setSelectedStop] = useState<[number, number] | null>(null)
   const [selectedLine, setSelectedLine] = useState<string | null>(null)
   const [favorites, setFavorites] = useState<string[]>([])
+  const [isMobile, setIsMobile] = useState(false)
 
   const navigate = useNavigate()
-
   const location = useLocation()
   const params = new URLSearchParams(location.search)
   const targetLat = params.get('lat')
   const targetLng = params.get('lng')
+
+  // Detectar si es móvil
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // 📍 Obtener ubicación real
   useEffect(() => {
@@ -506,6 +488,26 @@ export default function MapView() {
   const planTrip = (lat: number, lng: number) => {
     navigate(`/planner?lat=${lat}&lng=${lng}`)
   }
+
+  // Icono personalizado responsivo
+  const createCustomIcon = (color: string, number?: number, isFav?: boolean) =>
+    L.divIcon({
+      className: '',
+      html: `<div style="
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        width:${isMobile ? 34 : 28}px;
+        height:${isMobile ? 34 : 28}px;
+        background:${isFav ? '#FFD700' : color};
+        border-radius:50%;
+        border:3px solid white;
+        font-size:${isMobile ? 14 : 12}px;
+        font-weight:700;
+        color:${isFav ? '#000' : '#fff'};
+        box-shadow:0 2px 8px rgba(0,0,0,0.2);
+      ">${number ?? ''}</div>`,
+    })
 
   const city = data.cities.find((c) => c.name === 'Bragança')
 
@@ -578,7 +580,7 @@ export default function MapView() {
     })
     .filter((s) => s.distance <= 500)
     .sort((a, b) => a.distance - b.distance)
-    .slice(0, 5)
+    .slice(0, isMobile ? 3 : 5)
 
   const bestStop = nearbyStops
     .filter((s) => s.next !== null)
@@ -590,24 +592,27 @@ export default function MapView() {
 
       {loadingLocation && <LoadingScreen />}
 
+      {/* Botón Planear - RESPONSIVE */}
       <button
         onClick={() => navigate('/planner')}
         style={{
           position: 'fixed',
-          bottom: 350,
-          right: 20,
+          bottom: isMobile ? 80 : 100,
+          right: isMobile ? 16 : 20,
           display: 'flex',
           alignItems: 'center',
-          gap: 8,
-          padding: '12px 16px',
-          borderRadius: 30,
+          justifyContent: 'center',
+          gap: isMobile ? 6 : 8,
+          padding: isMobile ? '10px 16px' : '12px 20px',
+          borderRadius: 40,
           background: '#5CB130',
           color: '#fff',
           border: 'none',
           fontWeight: '600',
+          fontSize: isMobile ? 13 : 14,
           zIndex: 2000,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-          cursor: 'pointer'
+          boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+          cursor: 'pointer',
         }}
       >
         🚏 Planear
@@ -631,7 +636,13 @@ export default function MapView() {
         }
       />
 
-      <MapContainer center={position} zoom={17} style={{ height: '100vh' }}>
+      <MapContainer 
+        center={position} 
+        zoom={isMobile ? 16 : 17} 
+        style={{ height: '100vh', width: '100%' }}
+        zoomControl={!isMobile}
+        attributionControl={false}
+      >
         <MapClickHandler
           onSelect={(latlng: L.LatLng) =>
             navigate(`/planner?lat=${latlng.lat}&lng=${latlng.lng}`)
@@ -660,13 +671,19 @@ export default function MapView() {
               position={[stop.coordinates.latitude, stop.coordinates.longitude]}
               icon={createCustomIcon(mainLine.color, mainLine.order, isFav)}
             >
-              <Popup minWidth={300} maxWidth={360}>
+              <Popup 
+                minWidth={isMobile ? 260 : 300} 
+                maxWidth={isMobile ? 320 : 360}
+                closeButton={true}
+                closeOnClick={false}
+              >
                 <StopPopupContent
                   stop={stop}
                   city={city}
                   favorites={favorites}
                   onToggleFavorite={toggleFavorite}
                   onPlanTrip={planTrip}
+                  isMobile={isMobile}
                 />
               </Popup>
             </Marker>
