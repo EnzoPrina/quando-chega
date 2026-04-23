@@ -186,13 +186,13 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   logoCard: {
     pointerEvents: 'auto',
-    background: 'rgba(255, 255, 255, 0.15)',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
+    background: 'rgba(77, 77, 77, 0.23)',
+    backdropFilter: 'blur(5px)',
+    WebkitBackdropFilter: 'blur(2px)',
     borderRadius: 50,
     padding: '3px 23px',
-    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
-    border: '1px solid rgba(255, 255, 255, 0.25)',
+    boxShadow: '0 5px 12px rgba(0, 0, 0, 0.29)',
+    border: '1px solid rgb(255, 255, 255)',
     transition: 'transform 0.2s, box-shadow 0.2s',
   },
   logo: {

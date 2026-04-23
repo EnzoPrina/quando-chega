@@ -1,6 +1,6 @@
 .cards-wrapper {
   position: fixed; /* 🔥 CLAVE */
-  bottom: 20px;
+  bottom: 55px;
   left: 0;
   right: 0;
   display: flex;

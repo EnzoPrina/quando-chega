@@ -420,6 +420,7 @@ export default function MapView() {
   const [selectedStop, setSelectedStop] = useState<[number, number] | null>(null)
   const [selectedLine, setSelectedLine] = useState<string | null>(null)
   const [favorites, setFavorites] = useState<string[]>([])
+  const [showLineDrawer, setShowLineDrawer] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
 
   const navigate = useNavigate()
@@ -558,6 +559,7 @@ export default function MapView() {
       )
     : groupedStops
 
+  // Ajustar NearbyStops para que no quede tapado
   const nearbyStops = filteredStops
     .map((stop) => {
       const distance = getDistanceMeters(
@@ -592,49 +594,181 @@ export default function MapView() {
 
       {loadingLocation && <LoadingScreen />}
 
-      {/* Botón Planear - RESPONSIVE */}
-      <button
-        onClick={() => navigate('/planner')}
-        style={{
+      {/* BARRA INFERIOR SIMPLE - Solo 2 botones como la referencia */}
+      <div style={{
+        position: 'fixed',
+        bottom: isMobile ? 16 : 24,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        background: 'rgba(20, 20, 25, 0.85)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderRadius: 60,
+        padding: '6px',
+        zIndex: 2000,
+        display: 'flex',
+        gap: 8,
+        boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+        border: '1px solid rgba(255, 255, 255, 0.15)',
+      }}>
+        {/* Botón Ver Líneas */}
+        <button
+          onClick={() => setShowLineDrawer(!showLineDrawer)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            padding: isMobile ? '10px 20px' : '12px 28px',
+            borderRadius: 50,
+            background: showLineDrawer ? '#5CB130' : 'rgba(255, 255, 255, 0.1)',
+            color: '#fff',
+            border: 'none',
+            fontWeight: '500',
+            fontSize: isMobile ? 14 : 15,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          <span style={{ fontSize: isMobile ? 16 : 18 }}>🚌</span>
+          <span>{selectedLine ? `Linha ${selectedLine}` : 'Ver linhas'}</span>
+        </button>
+
+        {/* Botón Planear Viaje - Principal */}
+        <button
+          onClick={() => navigate('/planner')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            padding: isMobile ? '10px 24px' : '12px 32px',
+            borderRadius: 50,
+            background: '#5CB130',
+            color: '#0D0D0D',
+            border: 'none',
+            fontWeight: '600',
+            fontSize: isMobile ? 14 : 15,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            boxShadow: '0 2px 8px rgba(92, 177, 48, 0.4)',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          <span style={{ fontSize: isMobile ? 16 : 18 }}>✨</span>
+          <span>Planear viagem</span>
+        </button>
+      </div>
+
+      {/* LINE DRAWER - Mejorado con blur */}
+      {showLineDrawer && (
+        <div style={{
           position: 'fixed',
-          bottom: isMobile ? 80 : 100,
-          right: isMobile ? 16 : 20,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: isMobile ? 6 : 8,
-          padding: isMobile ? '10px 16px' : '12px 20px',
-          borderRadius: 40,
-          background: '#5CB130',
-          color: '#fff',
-          border: 'none',
-          fontWeight: '600',
-          fontSize: isMobile ? 13 : 14,
-          zIndex: 2000,
-          boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-          cursor: 'pointer',
-        }}
-      >
-        🚏 Planear
-      </button>
+          bottom: isMobile ? 80 : 90,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 'auto',
+          minWidth: isMobile ? 280 : 320,
+          maxWidth: '90%',
+          background: 'rgba(26, 26, 30, 0.95)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderRadius: 24,
+          padding: 16,
+          zIndex: 1999,
+          border: '1px solid rgba(255,255,255,0.1)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+          animation: 'slideUp 0.2s ease',
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 12,
+          }}>
+            <span style={{ color: '#fff', fontWeight: 600, fontSize: 14 }}>Linhas disponíveis</span>
+            <button
+              onClick={() => setShowLineDrawer(false)}
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: 'none',
+                borderRadius: 20,
+                padding: '6px 14px',
+                color: '#ccc',
+                fontSize: 12,
+                cursor: 'pointer',
+              }}
+            >
+              Fechar
+            </button>
+          </div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <button
+              onClick={() => {
+                setSelectedLine(null)
+                setShowLineDrawer(false)
+              }}
+              style={{
+                padding: '8px 18px',
+                borderRadius: 40,
+                background: !selectedLine ? '#5CB130' : 'rgba(255,255,255,0.1)',
+                color: '#fff',
+                border: 'none',
+                fontWeight: 500,
+                fontSize: 13,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              Todas
+            </button>
+            {city?.lines.map((line) => (
+              <button
+  key={line.line}
+  onClick={() => {
+    setSelectedLine(selectedLine === line.line ? null : line.line)
+    setShowLineDrawer(false)
+  }}
+  style={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    padding: '8px 16px',
+    borderRadius: 40,
+    background: selectedLine === line.line ? line.color : 'rgba(255,255,255,0.1)',
+    color: '#fff',
+    border: 'none',
+    fontWeight: 600,
+    fontSize: 13,
+    cursor: 'pointer'
+  }}
+>
+  <span style={{
+    width: 10,
+    height: 10,
+    borderRadius: '50%',
+    background: line.color
+  }} />
+  {line.line}
+</button>
+            ))}
+          </div>
+        </div>
+      )}
 
-      <FavoriteStops
-        stops={groupedStops.filter((s) => favorites.includes(s.number))}
-        onSelect={(stop: any) =>
-          setSelectedStop([
-            stop.coordinates.latitude,
-            stop.coordinates.longitude,
-          ])
-        }
-      />
-
-      <LineDrawer
-        lines={city?.lines.map((l) => ({ line: l.line, color: l.color })) || []}
-        selected={selectedLine}
-        onSelect={(line: string) =>
-          setSelectedLine(line === selectedLine ? null : line)
-        }
-      />
+      {/* FavoriteStops oculto por ahora */}
+      <div style={{ display: 'none' }}>
+        <FavoriteStops
+          stops={groupedStops.filter((s) => favorites.includes(s.number))}
+          onSelect={(stop: any) =>
+            setSelectedStop([
+              stop.coordinates.latitude,
+              stop.coordinates.longitude,
+            ])
+          }
+        />
+      </div>
 
       <MapContainer 
         center={position} 
@@ -691,16 +825,46 @@ export default function MapView() {
         })}
       </MapContainer>
 
-      <NearbyStops
-        stops={nearbyStops}
-        bestStop={bestStop}
-        onSelect={(stop: any) =>
-          setSelectedStop([
-            stop.coordinates.latitude,
-            stop.coordinates.longitude,
-          ])
+      {/* NearbyStops con bottom ajustado para que no quede tapado */}
+      <div style={{
+        marginBottom: 300 ,
+        position: 'fixed',
+        bottom: isMobile ? 110 : 120,
+        left: 0,
+        right: 0,
+        pointerEvents: 'auto',
+        zIndex: 1000,
+      }}>
+        <NearbyStops
+          stops={nearbyStops}
+          bestStop={bestStop}
+          onSelect={(stop: any) =>
+            setSelectedStop([
+              stop.coordinates.latitude,
+              stop.coordinates.longitude,
+            ])
+          }
+        />
+      </div>
+
+      {/* Estilos de animación */}
+      <style>{`
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateX(-50%) translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+          }
         }
-      />
+        
+        button:hover {
+          transform: scale(1.02);
+          opacity: 0.95;
+        }
+      `}</style>
     </>
   )
 }
