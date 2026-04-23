@@ -12,7 +12,7 @@ export default function LineDrawer({ lines, selected, onSelect }: any) {
     <>
       {/* 🔥 BOTÓN FLOTANTE */}
       <button style={button} onClick={() => setOpen(!open)}>
-        🚌
+        🚏
       </button>
 
       {/* 🔥 PANEL */}
@@ -66,10 +66,10 @@ const button = {
   height: 65,
   borderRadius: '50%',
   border: '1px solid rgba(255,255,255,0.1)',
-  background: 'rgba(0,0,0,0.5)',
-  backdropFilter: 'blur(10px)',
+    background: 'rgba(255, 255, 255, 0.15)',
+  backdropFilter: 'blur(12px)',
   color: '#fff',
-  fontSize: 28,
+  fontSize: 36,
   cursor: 'pointer',
   zIndex: 1001,
 }

@@ -610,7 +610,7 @@ export default function MapView() {
           cursor: 'pointer'
         }}
       >
-        ↗️ Planear
+        🚏 Planear
       </button>
 
       <FavoriteStops

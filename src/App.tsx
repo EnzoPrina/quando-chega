@@ -7,8 +7,9 @@ import HomePage from './pages/HomePage'
 import StopDetailPage from './pages/StopDetailPage'
 import LoginPage from './pages/LoginPage'
 import CompleteProfilePage from './pages/CompleteProfilePage'
-
 import TripPlanner from './pages/TripPlanner'
+import TermsPage from './pages/TermsPage'      // 🔥 NOVO
+import PrivacyPage from './pages/PrivacyPage'  // 🔥 NOVO
 
 function App() {
   const [user, setUser] = useState<any>(null)
@@ -48,6 +49,8 @@ function App() {
       <Route path="/stop/:id" element={<StopDetailPage />} />
       <Route path="/complete-profile" element={<CompleteProfilePage />} />
       <Route path="/planner" element={<TripPlanner />} />
+      <Route path="/terms" element={<TermsPage />} />      
+      <Route path="/privacy" element={<PrivacyPage />} /> 
     </Routes>
   )
 }
