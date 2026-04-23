@@ -7,7 +7,7 @@ import { getDistanceMeters } from '../utils/distance'
 import L from 'leaflet'
 import { useNavigate, useLocation } from 'react-router-dom'
 import Header from './Header'
-import LineDrawer from './LineDrawer'
+/* import LineDrawer from './LineDrawer' */
 import { getNextBus } from '../utils/time'
 import LoadingScreen from './LoadingScreen'
 import { addFavorite, removeFavorite, getFavorites } from '../utils/favorites'
