@@ -2,8 +2,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 're
 import { useEffect, useState } from 'react'
 import 'leaflet/dist/leaflet.css'
 import data from '../data/stops.json'
-import places from '../data/places.json'  // 🔥 IMPORTAMOS LOS LUGARES
-import NearbyStops from './NearbyStops'
+import places from '../data/places.json'
 import { getDistanceMeters } from '../utils/distance'
 import L from 'leaflet'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -137,7 +136,6 @@ function FlyTo({ position }: { position: [number, number] | null }) {
 
 // 🔥 COMPONENTE POPUP PARA LUGARES (Pingo Doce, Hospital, etc.)
 function PlacePopupContent({ place, onPlanTrip, isMobile }: any) {
-  // Determinar icono según el tipo de lugar
   const getPlaceIcon = () => {
     const name = place.name.toLowerCase()
     if (name.includes('pingo') || name.includes('continente') || name.includes('lidl') || name.includes('minipreço') || name.includes('intermarché')) {
@@ -303,7 +301,6 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
   
   const destinations = getAvailableDestinations()
   const isFav = favorites.includes(stop.number)
-  const allLines = linesForStop.map(l => l.line).join(', ')
   
   return (
     <div style={{ 
@@ -703,7 +700,6 @@ export default function MapView() {
       ">${number ?? ''}</div>`,
     })
 
-  // 🔥 Icono para lugares (cuadrado naranja con 📍)
   const createPlaceIcon = () =>
     L.divIcon({
       className: '',
@@ -711,13 +707,12 @@ export default function MapView() {
         display:flex;
         align-items:center;
         justify-content:center;
-                border-radius: 8px;
+        border-radius: 8px;
         width:${isMobile ? 34 : 28}px;
         height:${isMobile ? 34 : 28}px;
-        background: rgba(255, 255, 255, 0.75);
-        backdropFilter: 'blur(2px)',
-        WebkitBackdropFilter: 'blur(2px)',
-
+        background: #fcfcfcc9;
+            backdropFilter: 'blur(5px)',
+    WebkitBackdropFilter: 'blur(2px)',
         border: 2px solid white;
         font-size:${isMobile ? 14 : 12}px;
         font-weight:700;
@@ -799,24 +794,16 @@ export default function MapView() {
       })
       
       allNextBuses.sort((a, b) => a.minutes - b.minutes)
-      const bestNext = allNextBuses[0] || null
 
       return { 
         ...stop, 
         distance, 
-        next: bestNext?.minutes || null,
-        nextLine: bestNext?.line || null,
-        nextColor: bestNext?.color || null,
         allBuses: allNextBuses 
       }
     })
     .filter((s) => s.distance <= 500)
     .sort((a, b) => a.distance - b.distance)
     .slice(0, isMobile ? 3 : 5)
-
-  const bestStop = nearbyStops
-    .filter((s) => s.next !== null)
-    .sort((a, b) => (a.next ?? 999) - (b.next ?? 999))[0]
 
   return (
     <>
