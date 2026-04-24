@@ -2,12 +2,12 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 're
 import { useEffect, useState } from 'react'
 import 'leaflet/dist/leaflet.css'
 import data from '../data/stops.json'
+import places from '../data/places.json'  // 🔥 IMPORTAMOS LOS LUGARES
 import NearbyStops from './NearbyStops'
 import { getDistanceMeters } from '../utils/distance'
 import L from 'leaflet'
 import { useNavigate, useLocation } from 'react-router-dom'
 import Header from './Header'
-/* import LineDrawer from './LineDrawer' */
 import { getNextBus } from '../utils/time'
 import LoadingScreen from './LoadingScreen'
 import { addFavorite, removeFavorite, getFavorites } from '../utils/favorites'
@@ -19,6 +19,73 @@ import { db, auth } from '../firebase'
 
 // 📍 Posición por defecto (Bragança)
 const DEFAULT_POSITION: [number, number] = [41.806, -6.756]
+
+// 🔥 Función para formatear tiempo de forma legible
+const formatTimeReadable = (minutes: number): string => {
+  if (minutes < 0) return '0 min'
+  if (minutes < 60) return `${minutes} min`
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  if (mins === 0) return `${hours}h`
+  return `${hours}h ${mins}min`
+}
+
+// Tipografía Poppins
+const poppinsStyle = {
+  fontFamily: "'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+}
+
+// Inyectar Poppins globalmente
+const styleSheet = document.createElement('style')
+styleSheet.textContent = `
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+  * {
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+  button:hover {
+    transform: scale(1.02);
+    opacity: 0.95;
+  }
+  .leaflet-popup {
+    bottom: 20px !important;
+  }
+  .leaflet-popup-content-wrapper {
+    border-radius: 16px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  .leaflet-popup-tip {
+    display: none !important;
+  }
+  .leaflet-popup-close-button {
+    top: 12px !important;
+    right: 12px !important;
+    font-size: 20px !important;
+    color: #fff !important;
+    background: rgba(0,0,0,0.5) !important;
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 10 !important;
+  }
+  .leaflet-popup-close-button:hover {
+    background: rgba(0,0,0,0.7) !important;
+  }
+`
+document.head.appendChild(styleSheet)
 
 const isDay = () => {
   const hour = new Date().getHours()
@@ -39,6 +106,23 @@ const userIcon = L.divIcon({
   html: `<div style="width:18px;height:18px;background:#00d4ff;border-radius:50%;border:3px solid white;box-shadow:0 0 10px rgba(0,212,255,0.5);"></div>`,
 })
 
+function PopupHandler({ position, isMobile }: { position: [number, number] | null; isMobile: boolean }) {
+  const map = useMap()
+
+  useEffect(() => {
+    if (position && isMobile) {
+      setTimeout(() => {
+        map.setView(position, map.getZoom(), {
+          animate: true,
+          duration: 0.3
+        })
+      }, 50)
+    }
+  }, [position, map, isMobile])
+
+  return null
+}
+
 function FlyTo({ position }: { position: [number, number] | null }) {
   const map = useMap()
 
@@ -51,7 +135,102 @@ function FlyTo({ position }: { position: [number, number] | null }) {
   return null
 }
 
-// 🔥 COMPONENTE POPUP MEJORADO Y RESPONSIVO
+// 🔥 COMPONENTE POPUP PARA LUGARES (Pingo Doce, Hospital, etc.)
+function PlacePopupContent({ place, onPlanTrip, isMobile }: any) {
+  // Determinar icono según el tipo de lugar
+  const getPlaceIcon = () => {
+    const name = place.name.toLowerCase()
+    if (name.includes('pingo') || name.includes('continente') || name.includes('lidl') || name.includes('minipreço') || name.includes('intermarché')) {
+      return '🛒'
+    }
+    if (name.includes('hospital') || name.includes('centro de saúde')) {
+      return '🏥'
+    }
+    if (name.includes('parque')) {
+      return '🌳'
+    }
+    if (name.includes('castelo')) {
+      return '🏰'
+    }
+    if (name.includes('politécnico') || name.includes('escola')) {
+      return '🎓'
+    }
+    if (name.includes('estádio')) {
+      return '⚽'
+    }
+    if (name.includes('câmara') || name.includes('municipal')) {
+      return '🏛️'
+    }
+    if (name.includes('shopping')) {
+      return '🛍️'
+    }
+    if (name.includes('arte') || name.includes('igreja') || name.includes('catedral')) {
+      return '🎨'
+    }
+    if (name.includes('cantina')) {
+      return '🍽️'
+    }
+    return '📍'
+  }
+
+  return (
+    <div style={{ 
+      background: '#1a1a1a', 
+      padding: isMobile ? 12 : 14, 
+      borderRadius: 16, 
+      minWidth: isMobile ? 220 : 260,
+      maxWidth: isMobile ? 280 : 320,
+      ...poppinsStyle,
+    }}>
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: 10,
+        marginBottom: 12,
+        borderBottom: '1px solid #333',
+        paddingBottom: 8
+      }}>
+        <span style={{ fontSize: 28 }}>{getPlaceIcon()}</span>
+        <div>
+          <div style={{ color: '#fff', fontWeight: 700, fontSize: isMobile ? 14 : 15 }}>
+            {place.name}
+          </div>
+          <div style={{ color: '#FF9800', fontSize: 10, marginTop: 2 }}>
+            Ponto de interesse
+          </div>
+        </div>
+      </div>
+      
+      <p style={{ color: '#aaa', fontSize: 12, marginBottom: 12, lineHeight: 1.4 }}>
+        Clique abaixo para planear uma viagem até este local.
+      </p>
+      
+      <button
+        onClick={() => onPlanTrip(place.coordinates.latitude, place.coordinates.longitude)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          padding: isMobile ? 10 : 8,
+          borderRadius: 10,
+          background: '#FF9800',
+          color: '#fff',
+          width: '100%',
+          fontWeight: 600,
+          border: 'none',
+          cursor: 'pointer',
+          fontSize: isMobile ? 13 : 12,
+          ...poppinsStyle
+        }}
+      >
+        ✨ Planear viagem até aqui
+      </button>
+    </div>
+  )
+}
+
+// 🔥 COMPONENTE POPUP PARA PARADAS
 function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip, isMobile }: any) {
   const [showAllSchedules, setShowAllSchedules] = useState(false)
   
@@ -129,11 +308,12 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
   return (
     <div style={{ 
       background: '#1a1a1a', 
-      padding: isMobile ? 10 : 12, 
-      borderRadius: 12, 
-      minWidth: isMobile ? 240 : 280,
-      maxWidth: isMobile ? 300 : 340,
-      fontFamily: 'system-ui, -apple-system, sans-serif'
+      padding: isMobile ? 14 : 12, 
+      borderRadius: 16, 
+      minWidth: isMobile ? 280 : 300,
+      maxWidth: isMobile ? 340 : 380,
+      ...poppinsStyle,
+      position: 'relative',
     }}>
       <div style={{ 
         display: 'flex', 
@@ -144,11 +324,25 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
         paddingBottom: 8
       }}>
         <div>
-          <div style={{ color: '#fff', fontWeight: 700, fontSize: isMobile ? 13 : 15 }}>
+          <div style={{ color: '#fff', fontWeight: 700, fontSize: isMobile ? 14 : 15 }}>
             🚏 {stop.name}
           </div>
-          <div style={{ color: '#aaa', fontSize: 9, marginTop: 2 }}>
-            Líneas: {allLines}
+          <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+            {linesForStop.map((line, idx) => (
+              <span
+                key={idx}
+                style={{
+                  background: line.color,
+                  padding: '2px 8px',
+                  borderRadius: 12,
+                  fontSize: 10,
+                  fontWeight: 600,
+                  color: '#fff',
+                }}
+              >
+                {line.line}
+              </span>
+            ))}
           </div>
         </div>
         
@@ -158,10 +352,10 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
             style={{
               background: 'transparent',
               border: 'none',
-              fontSize: isMobile ? 18 : 20,
+              fontSize: isMobile ? 20 : 20,
               cursor: 'pointer',
               color: isFav ? '#FFD700' : '#666',
-              padding: isMobile ? '6px 8px' : '4px 6px',
+              padding: isMobile ? '8px' : '4px 6px',
               borderRadius: 6,
               transition: '0.2s'
             }}
@@ -184,7 +378,7 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
               fontSize: isMobile ? 18 : 16,
               cursor: 'pointer',
               color: '#5CB130',
-              padding: isMobile ? '6px 8px' : '4px 6px',
+              padding: isMobile ? '8px' : '4px 6px',
               borderRadius: 6
             }}
             title="Notificar quando o ônibus chegar"
@@ -208,7 +402,7 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
         {nextBuses.map((bus, idx) => (
           <div key={idx} style={{
             background: '#0D0D0D',
-            padding: isMobile ? 6 : 8,
+            padding: isMobile ? 8 : 8,
             borderRadius: 8,
             marginBottom: 6,
             display: 'flex',
@@ -220,21 +414,21 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
               <div style={{
                 background: bus.color,
-                width: isMobile ? 28 : 30,
-                height: isMobile ? 28 : 30,
-                borderRadius: 6,
+                width: isMobile ? 32 : 30,
+                height: isMobile ? 32 : 30,
+                borderRadius: 8,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontWeight: 700,
-                fontSize: isMobile ? 10 : 12,
+                fontSize: isMobile ? 11 : 12,
                 color: '#fff'
               }}>
                 {bus.line}
               </div>
               <div>
-                <div style={{ color: bus.nextBus.minutes === 0 ? '#5CB130' : '#fff', fontSize: isMobile ? 12 : 14, fontWeight: 600 }}>
-                  {bus.nextBus.minutes === 0 ? '🟢 A chegar' : `⏱️ ${bus.nextBus.minutes} min`}
+                <div style={{ color: bus.nextBus.minutes === 0 ? '#5CB130' : '#fff', fontSize: isMobile ? 13 : 14, fontWeight: 600 }}>
+                  {bus.nextBus.minutes === 0 ? '🟢 A chegar' : `⏱️ ${formatTimeReadable(bus.nextBus.minutes)}`}
                 </div>
                 {bus.nextBus.time && (
                   <div style={{ color: '#666', fontSize: 9 }}>
@@ -249,14 +443,14 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
               style={{
                 background: bus.color,
                 border: 'none',
-                borderRadius: 6,
-                padding: isMobile ? '6px 12px' : '6px 12px',
+                borderRadius: 8,
+                padding: isMobile ? '8px 14px' : '6px 12px',
                 color: '#fff',
-                fontSize: isMobile ? 10 : 11,
+                fontSize: isMobile ? 11 : 11,
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition: '0.2s',
-                minWidth: isMobile ? 60 : 'auto'
+                minWidth: isMobile ? 70 : 'auto'
               }}
             >
               Planear
@@ -345,8 +539,8 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
             {destinations.slice(0, isMobile ? 3 : 4).map((dest, idx) => (
               <div key={idx} style={{
                 background: '#0D0D0D',
-                padding: '6px 10px',
-                borderRadius: 6,
+                padding: '8px 10px',
+                borderRadius: 8,
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
@@ -356,19 +550,19 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
                   <div style={{
                     background: dest.color,
-                    width: 20,
-                    height: 20,
-                    borderRadius: 4,
+                    width: 24,
+                    height: 24,
+                    borderRadius: 6,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: 9,
+                    fontSize: 10,
                     fontWeight: 600,
                     color: '#fff'
                   }}>
                     {dest.line}
                   </div>
-                  <div style={{ color: '#ddd', fontSize: isMobile ? 10 : 12 }}>
+                  <div style={{ color: '#ddd', fontSize: isMobile ? 11 : 12 }}>
                     {dest.name.length > 25 ? dest.name.substring(0, 22) + '...' : dest.name}
                   </div>
                 </div>
@@ -378,10 +572,10 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
                   style={{
                     background: 'transparent',
                     border: `1px solid ${dest.color}`,
-                    borderRadius: 4,
-                    padding: '4px 8px',
+                    borderRadius: 6,
+                    padding: '6px 12px',
                     color: dest.color,
-                    fontSize: 10,
+                    fontSize: 11,
                     cursor: 'pointer'
                   }}
                 >
@@ -397,15 +591,16 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
         onClick={() => onPlanTrip(stop.coordinates.latitude, stop.coordinates.longitude)}
         style={{
           marginTop: 12,
-          padding: isMobile ? 10 : 8,
-          borderRadius: 8,
+          padding: isMobile ? 12 : 10,
+          borderRadius: 10,
           background: '#5CB130',
           color: '#fff',
           width: '100%',
           fontWeight: 600,
           border: 'none',
           cursor: 'pointer',
-          fontSize: isMobile ? 13 : 12
+          fontSize: isMobile ? 14 : 13,
+          ...poppinsStyle
         }}
       >
         🧭 Planear viagem desde aquí
@@ -418,6 +613,7 @@ export default function MapView() {
   const [position, setPosition] = useState<[number, number]>(DEFAULT_POSITION)
   const [loadingLocation, setLoadingLocation] = useState(true)
   const [selectedStop, setSelectedStop] = useState<[number, number] | null>(null)
+  const [popupPosition, setPopupPosition] = useState<[number, number] | null>(null)
   const [selectedLine, setSelectedLine] = useState<string | null>(null)
   const [favorites, setFavorites] = useState<string[]>([])
   const [showLineDrawer, setShowLineDrawer] = useState(false)
@@ -429,7 +625,6 @@ export default function MapView() {
   const targetLat = params.get('lat')
   const targetLng = params.get('lng')
 
-  // Detectar si es móvil
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768)
@@ -439,7 +634,6 @@ export default function MapView() {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  // 📍 Obtener ubicación real
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -490,7 +684,6 @@ export default function MapView() {
     navigate(`/planner?lat=${lat}&lng=${lng}`)
   }
 
-  // Icono personalizado responsivo
   const createCustomIcon = (color: string, number?: number, isFav?: boolean) =>
     L.divIcon({
       className: '',
@@ -498,16 +691,39 @@ export default function MapView() {
         display:flex;
         align-items:center;
         justify-content:center;
-        width:${isMobile ? 34 : 28}px;
-        height:${isMobile ? 34 : 28}px;
+        width:${isMobile ? 38 : 28}px;
+        height:${isMobile ? 38 : 28}px;
         background:${isFav ? '#FFD700' : color};
         border-radius:50%;
         border:3px solid white;
-        font-size:${isMobile ? 14 : 12}px;
+        font-size:${isMobile ? 15 : 12}px;
         font-weight:700;
         color:${isFav ? '#000' : '#fff'};
         box-shadow:0 2px 8px rgba(0,0,0,0.2);
       ">${number ?? ''}</div>`,
+    })
+
+  // 🔥 Icono para lugares (cuadrado naranja con 📍)
+  const createPlaceIcon = () =>
+    L.divIcon({
+      className: '',
+      html: `<div style="
+        display:flex;
+        align-items:center;
+        justify-content:center;
+                border-radius: 8px;
+        width:${isMobile ? 34 : 28}px;
+        height:${isMobile ? 34 : 28}px;
+        background: rgba(255, 255, 255, 0.75);
+        backdropFilter: 'blur(2px)',
+        WebkitBackdropFilter: 'blur(2px)',
+
+        border: 2px solid white;
+        font-size:${isMobile ? 14 : 12}px;
+        font-weight:700;
+        color: #fff;
+        box-shadow:0 2px 8px rgba(0,0,0,0.2);
+      ">📍</div>`,
     })
 
   const city = data.cities.find((c) => c.name === 'Bragança')
@@ -559,7 +775,6 @@ export default function MapView() {
       )
     : groupedStops
 
-  // Ajustar NearbyStops para que no quede tapado
   const nearbyStops = filteredStops
     .map((stop) => {
       const distance = getDistanceMeters(
@@ -569,16 +784,31 @@ export default function MapView() {
         stop.coordinates.longitude
       )
 
-      const nextTimes = stop.lines
-        .map((l: any) => {
-          const next = getNextBus(l.schedules || [])
-          return next ? next.minutes : null
-        })
-        .filter((n: number | null): n is number => n !== null)
+      const allNextBuses: { line: string; color: string; minutes: number }[] = []
+      
+      stop.lines.forEach((line: any) => {
+        const schedules = line.schedules || []
+        const nextBus = getNextBus(schedules)
+        if (nextBus) {
+          allNextBuses.push({
+            line: line.line,
+            color: line.color,
+            minutes: nextBus.minutes
+          })
+        }
+      })
+      
+      allNextBuses.sort((a, b) => a.minutes - b.minutes)
+      const bestNext = allNextBuses[0] || null
 
-      const next = nextTimes.length > 0 ? Math.min(...nextTimes) : null
-
-      return { ...stop, distance, next }
+      return { 
+        ...stop, 
+        distance, 
+        next: bestNext?.minutes || null,
+        nextLine: bestNext?.line || null,
+        nextColor: bestNext?.color || null,
+        allBuses: allNextBuses 
+      }
     })
     .filter((s) => s.distance <= 500)
     .sort((a, b) => a.distance - b.distance)
@@ -594,7 +824,7 @@ export default function MapView() {
 
       {loadingLocation && <LoadingScreen />}
 
-      {/* BARRA INFERIOR SIMPLE - Solo 2 botones como la referencia */}
+      {/* BARRA INFERIOR */}
       <div style={{
         position: 'fixed',
         bottom: isMobile ? 16 : 24,
@@ -611,7 +841,6 @@ export default function MapView() {
         boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
         border: '1px solid rgba(255, 255, 255, 0.15)',
       }}>
-        {/* Botón Ver Líneas */}
         <button
           onClick={() => setShowLineDrawer(!showLineDrawer)}
           style={{
@@ -629,13 +858,13 @@ export default function MapView() {
             cursor: 'pointer',
             transition: 'all 0.2s ease',
             whiteSpace: 'nowrap',
+            ...poppinsStyle,
           }}
         >
           <span style={{ fontSize: isMobile ? 16 : 18 }}>🚌</span>
           <span>{selectedLine ? `Linha ${selectedLine}` : 'Ver linhas'}</span>
         </button>
 
-        {/* Botón Planear Viaje - Principal */}
         <button
           onClick={() => navigate('/planner')}
           style={{
@@ -645,15 +874,16 @@ export default function MapView() {
             gap: 8,
             padding: isMobile ? '10px 24px' : '12px 32px',
             borderRadius: 50,
-            background: '#5CB130',
-            color: '#0D0D0D',
+            background: '#fff',
+            color: '#1a1a1a',
             border: 'none',
             fontWeight: '600',
             fontSize: isMobile ? 14 : 15,
             cursor: 'pointer',
             transition: 'all 0.2s ease',
-            boxShadow: '0 2px 8px rgba(92, 177, 48, 0.4)',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
             whiteSpace: 'nowrap',
+            ...poppinsStyle,
           }}
         >
           <span style={{ fontSize: isMobile ? 16 : 18 }}>✨</span>
@@ -661,7 +891,7 @@ export default function MapView() {
         </button>
       </div>
 
-      {/* LINE DRAWER - Mejorado con blur */}
+      {/* LINE DRAWER */}
       {showLineDrawer && (
         <div style={{
           position: 'fixed',
@@ -687,7 +917,7 @@ export default function MapView() {
             alignItems: 'center',
             marginBottom: 12,
           }}>
-            <span style={{ color: '#fff', fontWeight: 600, fontSize: 14 }}>Linhas disponíveis</span>
+            <span style={{ color: '#fff', fontWeight: 600, fontSize: 14, ...poppinsStyle }}>Linhas disponíveis</span>
             <button
               onClick={() => setShowLineDrawer(false)}
               style={{
@@ -698,6 +928,7 @@ export default function MapView() {
                 color: '#ccc',
                 fontSize: 12,
                 cursor: 'pointer',
+                ...poppinsStyle,
               }}
             >
               Fechar
@@ -719,45 +950,46 @@ export default function MapView() {
                 fontSize: 13,
                 cursor: 'pointer',
                 transition: 'all 0.2s',
+                ...poppinsStyle,
               }}
             >
               Todas
             </button>
             {city?.lines.map((line) => (
               <button
-  key={line.line}
-  onClick={() => {
-    setSelectedLine(selectedLine === line.line ? null : line.line)
-    setShowLineDrawer(false)
-  }}
-  style={{
-    display: 'flex',
-    alignItems: 'center',
-    gap: 6,
-    padding: '8px 16px',
-    borderRadius: 40,
-    background: selectedLine === line.line ? line.color : 'rgba(255,255,255,0.1)',
-    color: '#fff',
-    border: 'none',
-    fontWeight: 600,
-    fontSize: 13,
-    cursor: 'pointer'
-  }}
->
-  <span style={{
-    width: 10,
-    height: 10,
-    borderRadius: '50%',
-    background: line.color
-  }} />
-  {line.line}
-</button>
+                key={line.line}
+                onClick={() => {
+                  setSelectedLine(selectedLine === line.line ? null : line.line)
+                  setShowLineDrawer(false)
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '8px 16px',
+                  borderRadius: 40,
+                  background: selectedLine === line.line ? line.color : 'rgba(255,255,255,0.1)',
+                  color: '#fff',
+                  border: 'none',
+                  fontWeight: 600,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  ...poppinsStyle,
+                }}
+              >
+                <span style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: '50%',
+                  background: line.color
+                }} />
+                {line.line}
+              </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* FavoriteStops oculto por ahora */}
       <div style={{ display: 'none' }}>
         <FavoriteStops
           stops={groupedStops.filter((s) => favorites.includes(s.number))}
@@ -772,7 +1004,7 @@ export default function MapView() {
 
       <MapContainer 
         center={position} 
-        zoom={isMobile ? 16 : 17} 
+        zoom={isMobile ? 15 : 17} 
         style={{ height: '100vh', width: '100%' }}
         zoomControl={!isMobile}
         attributionControl={false}
@@ -792,9 +1024,11 @@ export default function MapView() {
         />
 
         <FlyTo position={selectedStop} />
+        <PopupHandler position={popupPosition} isMobile={isMobile} />
 
         <Marker position={position} icon={userIcon} />
 
+        {/* MARKERS DE PARADAS */}
         {filteredStops.map((stop, i) => {
           const mainLine = stop.lines[0]
           const isFav = favorites.includes(stop.number)
@@ -804,12 +1038,20 @@ export default function MapView() {
               key={i}
               position={[stop.coordinates.latitude, stop.coordinates.longitude]}
               icon={createCustomIcon(mainLine.color, mainLine.order, isFav)}
+              eventHandlers={{
+                click: () => {
+                  setPopupPosition([stop.coordinates.latitude, stop.coordinates.longitude])
+                  setTimeout(() => setPopupPosition(null), 500)
+                }
+              }}
             >
               <Popup 
-                minWidth={isMobile ? 260 : 300} 
-                maxWidth={isMobile ? 320 : 360}
+                minWidth={isMobile ? 280 : 300} 
+                maxWidth={isMobile ? 350 : 360}
                 closeButton={true}
                 closeOnClick={false}
+                autoPan={true}
+                autoPanPadding={L.point(20, 80)}
               >
                 <StopPopupContent
                   stop={stop}
@@ -823,46 +1065,163 @@ export default function MapView() {
             </Marker>
           )
         })}
+
+        {/* 🔥 MARKERS DE LUGARES (Pingo Doce, Hospital, etc.) */}
+        {places.map((place, idx) => (
+          <Marker
+            key={`place-${idx}`}
+            position={[place.coordinates.latitude, place.coordinates.longitude]}
+            icon={createPlaceIcon()}
+            eventHandlers={{
+              click: () => {
+                setPopupPosition([place.coordinates.latitude, place.coordinates.longitude])
+                setTimeout(() => setPopupPosition(null), 500)
+              }
+            }}
+          >
+            <Popup 
+              minWidth={isMobile ? 240 : 260} 
+              maxWidth={isMobile ? 300 : 320}
+              closeButton={true}
+              closeOnClick={false}
+              autoPan={true}
+              autoPanPadding={L.point(20, 80)}
+            >
+              <PlacePopupContent
+                place={place}
+                onPlanTrip={planTrip}
+                isMobile={isMobile}
+              />
+            </Popup>
+          </Marker>
+        ))}
       </MapContainer>
 
-      {/* NearbyStops con bottom ajustado para que no quede tapado */}
+      {/* NearbyStops con múltiples líneas visibles */}
       <div style={{
-        marginBottom: 300 ,
         position: 'fixed',
-        bottom: isMobile ? 110 : 120,
+        bottom: isMobile ? 85 : 95,
         left: 0,
         right: 0,
-        pointerEvents: 'auto',
         zIndex: 1000,
+        overflowX: 'auto',
+        overflowY: 'hidden',
+        WebkitOverflowScrolling: 'touch',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+        paddingBottom: 8,
       }}>
-        <NearbyStops
-          stops={nearbyStops}
-          bestStop={bestStop}
-          onSelect={(stop: any) =>
-            setSelectedStop([
-              stop.coordinates.latitude,
-              stop.coordinates.longitude,
-            ])
-          }
-        />
+        <div style={{
+          display: 'flex',
+          gap: 12,
+          paddingLeft: 16,
+          paddingRight: 16,
+        }}>
+          {nearbyStops.map((stop, idx) => {
+            const isFav = favorites.includes(stop.number)
+            return (
+              <div
+                key={idx}
+                onClick={() =>
+                  setSelectedStop([
+                    stop.coordinates.latitude,
+                    stop.coordinates.longitude,
+                  ])
+                }
+                style={{
+                  minWidth: isMobile ? 240 : 280,
+                  background: '#1a1a1a',
+                  borderRadius: 16,
+                  padding: 12,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                  ...poppinsStyle,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', flex: 1 }}>
+                    {stop.lines.map((line: any, lineIdx: number) => (
+                      <div
+                        key={lineIdx}
+                        style={{
+                          background: line.color,
+                          width: 28,
+                          height: 28,
+                          borderRadius: 8,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 700,
+                          fontSize: 12,
+                          color: '#fff'
+                        }}
+                      >
+                        {line.line}
+                      </div>
+                    ))}
+                  </div>
+                  {isFav && <span style={{ color: '#FFD700', fontSize: 16 }}>★</span>}
+                </div>
+                
+                <div style={{ color: '#fff', fontWeight: 600, fontSize: 13, marginBottom: 4 }}>
+                  {stop.name.length > 25 ? stop.name.substring(0, 22) + '...' : stop.name}
+                </div>
+                
+                <div style={{ color: '#aaa', fontSize: 11, marginBottom: 8 }}>
+                  🚶 {Math.round(stop.distance)}m
+                </div>
+                
+                {stop.allBuses && stop.allBuses.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {stop.allBuses.slice(0, 2).map((bus: any, busIdx: number) => (
+                      <div
+                        key={busIdx}
+                        style={{
+                          background: 'rgba(92,177,48,0.15)',
+                          padding: '4px 8px',
+                          borderRadius: 8,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                        }}
+                      >
+                        <div style={{
+                          background: bus.color,
+                          width: 20,
+                          height: 20,
+                          borderRadius: 4,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 9,
+                          fontWeight: 600,
+                          color: '#fff'
+                        }}>
+                          {bus.line}
+                        </div>
+                        <span style={{ color: '#5CB130', fontSize: 11, fontWeight: 500 }}>
+                          ⏱️ {formatTimeReadable(bus.minutes)}
+                        </span>
+                      </div>
+                    ))}
+                    {stop.allBuses.length > 2 && (
+                      <div style={{ color: '#666', fontSize: 10, textAlign: 'center', marginTop: 4 }}>
+                        +{stop.allBuses.length - 2} mais linhas
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
       </div>
 
-      {/* Estilos de animación */}
       <style>{`
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateX(-50%) translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-          }
-        }
-        
-        button:hover {
-          transform: scale(1.02);
-          opacity: 0.95;
+        div::-webkit-scrollbar {
+          display: none;
         }
       `}</style>
     </>
