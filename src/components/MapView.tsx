@@ -35,6 +35,12 @@ const formatTimeReadable = (minutes: number): string => {
   return `${hours}h ${mins}min`
 }
 
+// 🔥 Nombre del día en portugués
+const getDayName = (): string => {
+  const days = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
+  return days[new Date().getDay()]
+}
+
 // Tipografía Poppins
 const poppinsStyle = {
   fontFamily: "'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
@@ -311,12 +317,6 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
   
   const destinations = getAvailableDestinations()
   const isFav = favorites.includes(stop.number)
-  
-  // Nombre del día en portugués
-  const getDayName = () => {
-    const days = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
-    return days[new Date().getDay()]
-  }
   
   return (
     <div style={{ 
@@ -861,19 +861,13 @@ export default function MapView() {
     .sort((a, b) => a.distance - b.distance)
     .slice(0, isMobile ? 3 : 5)
 
-  // Nombre del día
-  const getDayName = () => {
-    const days = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
-    return days[new Date().getDay()]
-  }
-
   return (
     <>
       <Header />
 
       {loadingLocation && <LoadingScreen />}
 
-      {/* 🔥 BANNER DE FIN DE SEMANA (opcional, visible pero no molesto) */}
+      {/* 🔥 BANNER DE FIN DE SEMANA */}
       {weekend && (
         <div style={{
           position: 'fixed',
