@@ -19,6 +19,12 @@ import { db, auth } from '../firebase'
 // 📍 Posición por defecto (Bragança)
 const DEFAULT_POSITION: [number, number] = [41.806, -6.756]
 
+// 🔥 Detectar si es fin de semana
+const isWeekend = (): boolean => {
+  const day = new Date().getDay()
+  return day === 0 || day === 6 // Domingo (0) o Sábado (6)
+}
+
 // 🔥 Función para formatear tiempo de forma legible
 const formatTimeReadable = (minutes: number): string => {
   if (minutes < 0) return '0 min'
@@ -228,9 +234,10 @@ function PlacePopupContent({ place, onPlanTrip, isMobile }: any) {
   )
 }
 
-// 🔥 COMPONENTE POPUP PARA PARADAS
+// 🔥 COMPONENTE POPUP PARA PARADAS (CON SOPORTE PARA FIN DE SEMANA)
 function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip, isMobile }: any) {
   const [showAllSchedules, setShowAllSchedules] = useState(false)
+  const weekend = isWeekend()
   
   const getLinesForStop = () => {
     const lines: any[] = []
@@ -263,6 +270,9 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
   const linesForStop = getLinesForStop()
   
   const getNextBusesForStop = () => {
+    // Si es fin de semana, no mostrar horarios
+    if (weekend) return []
+    
     return linesForStop.map(lineInfo => {
       const schedules = lineInfo.stop.schedules || []
       const nextBus = getNextBus(schedules)
@@ -301,6 +311,12 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
   
   const destinations = getAvailableDestinations()
   const isFav = favorites.includes(stop.number)
+  
+  // Nombre del día en portugués
+  const getDayName = () => {
+    const days = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
+    return days[new Date().getDay()]
+  }
   
   return (
     <div style={{ 
@@ -363,6 +379,10 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
           
           <button 
             onClick={async () => {
+              if (weekend) {
+                alert('🚌 Não há serviço de autocarros aos fins de semana. Volte durante a semana!')
+                return
+              }
               const ok = await requestPermission()
               if (!ok) return
               nextBuses.forEach(bus => {
@@ -374,11 +394,11 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
               border: 'none',
               fontSize: isMobile ? 18 : 16,
               cursor: 'pointer',
-              color: '#5CB130',
+              color: weekend ? '#666' : '#5CB130',
               padding: isMobile ? '8px' : '4px 6px',
               borderRadius: 6
             }}
-            title="Notificar quando o ônibus chegar"
+            title={weekend ? "Notificações indisponíveis ao fim de semana" : "Notificar quando o ônibus chegar"}
           >
             🔔
           </button>
@@ -390,13 +410,38 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
           🚌 Próximos autocarros
         </div>
         
-        {nextBuses.length === 0 && (
+        {weekend ? (
+          <div style={{ 
+            background: 'rgba(255, 100, 100, 0.1)', 
+            padding: 16, 
+            borderRadius: 12,
+            textAlign: 'center',
+            border: '1px solid rgba(255, 100, 100, 0.3)'
+          }}>
+            <div style={{ fontSize: 24, marginBottom: 8 }}>🚫</div>
+            <div style={{ color: '#ff8888', fontWeight: 600, marginBottom: 4 }}>
+              Sem serviço aos fins de semana
+            </div>
+            <div style={{ color: '#aaa', fontSize: 11 }}>
+              Hoje é {getDayName()}. Os autocarros não circulam.
+            </div>
+            <div style={{ 
+              marginTop: 12, 
+              paddingTop: 8, 
+              borderTop: '1px solid rgba(255,255,255,0.1)',
+              fontSize: 11,
+              color: '#888'
+            }}>
+              💡 Volte durante a semana (segunda a sexta)
+            </div>
+          </div>
+        ) : nextBuses.length === 0 && (
           <div style={{ color: '#666', fontSize: 12, textAlign: 'center', padding: 12, background: '#0D0D0D', borderRadius: 8 }}>
             Sem horários disponíveis no momento
           </div>
         )}
         
-        {nextBuses.map((bus, idx) => (
+        {!weekend && nextBuses.map((bus, idx) => (
           <div key={idx} style={{
             background: '#0D0D0D',
             padding: isMobile ? 8 : 8,
@@ -456,7 +501,7 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
         ))}
       </div>
       
-      {nextBuses.length > 0 && (
+      {!weekend && nextBuses.length > 0 && (
         <>
           <div 
             onClick={() => setShowAllSchedules(!showAllSchedules)}
@@ -526,7 +571,7 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
         </>
       )}
       
-      {destinations.length > 0 && (
+      {!weekend && destinations.length > 0 && (
         <div style={{ marginTop: 8, borderTop: '1px solid #333', paddingTop: 10 }}>
           <div style={{ color: '#aaa', fontSize: 10, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 }}>
             🎯 Destinos desde aquí
@@ -585,12 +630,18 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
       )}
       
       <button
-        onClick={() => onPlanTrip(stop.coordinates.latitude, stop.coordinates.longitude)}
+        onClick={() => {
+          if (weekend) {
+            alert('🚌 Não há serviço de autocarros aos fins de semana. Planeie outro meio de transporte!')
+          } else {
+            onPlanTrip(stop.coordinates.latitude, stop.coordinates.longitude)
+          }
+        }}
         style={{
           marginTop: 12,
           padding: isMobile ? 12 : 10,
           borderRadius: 10,
-          background: '#5CB130',
+          background: weekend ? '#666' : '#5CB130',
           color: '#fff',
           width: '100%',
           fontWeight: 600,
@@ -600,7 +651,7 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
           ...poppinsStyle
         }}
       >
-        🧭 Planear viagem desde aquí
+        {weekend ? '🚫 Sem serviço ao fim de semana' : '🧭 Planear viagem desde aquí'}
       </button>
     </div>
   )
@@ -621,6 +672,8 @@ export default function MapView() {
   const params = new URLSearchParams(location.search)
   const targetLat = params.get('lat')
   const targetLng = params.get('lng')
+
+  const weekend = isWeekend()
 
   useEffect(() => {
     const checkMobile = () => {
@@ -711,8 +764,7 @@ export default function MapView() {
         width:${isMobile ? 34 : 28}px;
         height:${isMobile ? 34 : 28}px;
         background: #fcfcfcc9;
-            backdropFilter: 'blur(5px)',
-    WebkitBackdropFilter: 'blur(2px)',
+        backdropFilter: blur(5px);
         border: 2px solid white;
         font-size:${isMobile ? 14 : 12}px;
         font-weight:700;
@@ -770,6 +822,7 @@ export default function MapView() {
       )
     : groupedStops
 
+  // 🔥 Si es fin de semana, no mostrar horarios en las paradas cercanas
   const nearbyStops = filteredStops
     .map((stop) => {
       const distance = getDistanceMeters(
@@ -781,35 +834,69 @@ export default function MapView() {
 
       const allNextBuses: { line: string; color: string; minutes: number }[] = []
       
-      stop.lines.forEach((line: any) => {
-        const schedules = line.schedules || []
-        const nextBus = getNextBus(schedules)
-        if (nextBus) {
-          allNextBuses.push({
-            line: line.line,
-            color: line.color,
-            minutes: nextBus.minutes
-          })
-        }
-      })
-      
-      allNextBuses.sort((a, b) => a.minutes - b.minutes)
+      // Solo calcular horarios si NO es fin de semana
+      if (!weekend) {
+        stop.lines.forEach((line: any) => {
+          const schedules = line.schedules || []
+          const nextBus = getNextBus(schedules)
+          if (nextBus) {
+            allNextBuses.push({
+              line: line.line,
+              color: line.color,
+              minutes: nextBus.minutes
+            })
+          }
+        })
+        allNextBuses.sort((a, b) => a.minutes - b.minutes)
+      }
 
       return { 
         ...stop, 
         distance, 
-        allBuses: allNextBuses 
+        allBuses: allNextBuses,
+        isWeekend: weekend
       }
     })
     .filter((s) => s.distance <= 500)
     .sort((a, b) => a.distance - b.distance)
     .slice(0, isMobile ? 3 : 5)
 
+  // Nombre del día
+  const getDayName = () => {
+    const days = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
+    return days[new Date().getDay()]
+  }
+
   return (
     <>
       <Header />
 
       {loadingLocation && <LoadingScreen />}
+
+      {/* 🔥 BANNER DE FIN DE SEMANA (opcional, visible pero no molesto) */}
+      {weekend && (
+        <div style={{
+          position: 'fixed',
+          top: 70,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'rgba(255, 100, 100, 0.9)',
+          backdropFilter: 'blur(10px)',
+          padding: '8px 16px',
+          borderRadius: 40,
+          zIndex: 2001,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+          whiteSpace: 'nowrap',
+        }}>
+          <span style={{ fontSize: 14 }}>🚫</span>
+          <span style={{ color: '#fff', fontSize: 12, fontWeight: 500 }}>
+            Sem serviço de autocarros ao fim de semana
+          </span>
+        </div>
+      )}
 
       {/* BARRA INFERIOR */}
       <div style={{
@@ -1053,7 +1140,7 @@ export default function MapView() {
           )
         })}
 
-        {/* 🔥 MARKERS DE LUGARES (Pingo Doce, Hospital, etc.) */}
+        {/* MARKERS DE LUGARES */}
         {places.map((place, idx) => (
           <Marker
             key={`place-${idx}`}
@@ -1084,7 +1171,7 @@ export default function MapView() {
         ))}
       </MapContainer>
 
-      {/* NearbyStops con múltiples líneas visibles */}
+      {/* NearbyStops con información de fin de semana */}
       <div style={{
         position: 'fixed',
         bottom: isMobile ? 85 : 95,
@@ -1160,7 +1247,19 @@ export default function MapView() {
                   🚶 {Math.round(stop.distance)}m
                 </div>
                 
-                {stop.allBuses && stop.allBuses.length > 0 && (
+                {weekend ? (
+                  <div style={{
+                    background: 'rgba(255, 100, 100, 0.1)',
+                    padding: '8px',
+                    borderRadius: 8,
+                    textAlign: 'center',
+                    border: '1px solid rgba(255, 100, 100, 0.2)'
+                  }}>
+                    <span style={{ color: '#ff8888', fontSize: 11, fontWeight: 500 }}>
+                      🚫 Sem serviço ao fim de semana
+                    </span>
+                  </div>
+                ) : stop.allBuses && stop.allBuses.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {stop.allBuses.slice(0, 2).map((bus: any, busIdx: number) => (
                       <div
@@ -1198,6 +1297,17 @@ export default function MapView() {
                         +{stop.allBuses.length - 2} mais linhas
                       </div>
                     )}
+                  </div>
+                ) : (
+                  <div style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    padding: '8px',
+                    borderRadius: 8,
+                    textAlign: 'center'
+                  }}>
+                    <span style={{ color: '#666', fontSize: 11 }}>
+                      Sem horários disponíveis
+                    </span>
                   </div>
                 )}
               </div>
