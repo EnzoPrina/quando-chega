@@ -1,16 +1,38 @@
 export function getNextBus(schedules: string[]) {
   const now = new Date()
 
-  const currentMinutes = now.getHours() * 60 + now.getMinutes()
+  // 0 = domingo
+  const day = now.getDay()
+
+  // SIN SERVICIO DOMINGO
+  if (day === 0) {
+    return {
+      minutes: -1,
+      time: 'Sem serviço hoje',
+      inactive: true
+    }
+  }
+
+  const currentMinutes =
+    now.getHours() * 60 + now.getMinutes()
 
   const timesInMinutes = schedules.map((t) => {
     const [h, m] = t.split(':').map(Number)
     return h * 60 + m
   })
 
-  const next = timesInMinutes.find((t) => t >= currentMinutes)
+  const next = timesInMinutes.find(
+    (t) => t >= currentMinutes
+  )
 
-  if (!next) return null
+  // NO HAY MÁS BUSES HOY
+  if (!next) {
+    return {
+      minutes: -1,
+      time: 'Último autocarro já passou',
+      inactive: true
+    }
+  }
 
   const diff = next - currentMinutes
 
@@ -19,16 +41,20 @@ export function getNextBus(schedules: string[]) {
 
   return {
     minutes: diff,
+
     time: `${String(nextHour).padStart(2, '0')}:${String(nextMin).padStart(2, '0')}`,
+
+    inactive: false
   }
 }
 
-// formato bonito
 export function formatTime(minutes: number) {
   if (minutes < 60) return `${minutes} min`
 
   const h = Math.floor(minutes / 60)
   const m = minutes % 60
 
-  return m === 0 ? `${h}h` : `${h}h ${m}m`
+  return m === 0
+    ? `${h}h`
+    : `${h}h ${m}m`
 }

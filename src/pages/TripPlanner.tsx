@@ -48,7 +48,7 @@ export default function TripPlanner() {
   const [result, setResult] = useState<any>(null)
   const [showSchedules, setShowSchedules] = useState(false)
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null)
-
+const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -78,6 +78,19 @@ export default function TripPlanner() {
       setUserLocation({ lat: 41.8065, lng: -6.7562 })
     }
   }, [])
+
+
+  useEffect(() => {
+const handleResize = () => {
+  setIsMobile(window.innerWidth < 768)
+}
+
+  window.addEventListener('resize', handleResize)
+
+  return () => {
+    window.removeEventListener('resize', handleResize)
+  }
+}, [])
 
   // Buscar destino cuando hay selección del mapa
   useEffect(() => {
@@ -293,6 +306,38 @@ export default function TripPlanner() {
   }
 
   return (
+  <>
+<style>
+{`
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+`}
+</style>
+
+
     <div style={{
       padding: 20,
       background: '#0D0D0D',
@@ -382,174 +427,624 @@ export default function TripPlanner() {
         </div>
       )}
 
-      {result?.best && (
-        <div style={{
-          marginTop: 20,
-          background: '#1a1a1a',
-          padding: 16,
-          borderRadius: 12,
-          borderLeft: `4px solid ${result.best.color}`
-        }}>
-          <div style={{ color: '#fff', fontWeight: 600, fontSize: 18 }}>
-            🎯 {result.originalPlace || result.destination.name}
-          </div>
 
-          <div style={{ marginTop: 16, background: '#0D0D0D', padding: 12, borderRadius: 10 }}>
-            <div style={{ color: '#5CB130', fontWeight: 700, marginBottom: 8 }}>
-              ⭐ MELHOR OPÇÃO
-            </div>
-            
-            <div style={{ color: '#fff', fontWeight: 600 }}>
-              {result.best.stop.name}
-            </div>
-            
-            <div style={{ display: 'flex', gap: 12, marginTop: 8, flexWrap: 'wrap' }}>
-              <div style={{ background: result.best.color, padding: '4px 8px', borderRadius: 6, fontSize: 12, fontWeight: 600 }}>
-                Linha {result.best.line}
-              </div>
-              <div style={{ color: '#5CB130' }}>
-                🚶 {result.best.walkingToStop} min
-              </div>
-              <div style={{ color: '#5CB130' }}>
-                🚌 {result.best.waitingTime} min
-              </div>
-              <div style={{ color: '#fff', fontWeight: 700 }}>
-                ⏱️ Tempo total {result.best.totalTime} min
-              </div>
-            </div>
-            <div
-              onClick={() => setShowSchedules(!showSchedules)}
-              style={{
-                marginTop: 10,
-                fontSize: 12,
-                color: '#aaa',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6
-              }}
-            >
-              <span style={{
-                transform: showSchedules ? 'rotate(180deg)' : 'rotate(0deg)',
-                transition: '0.2s'
-              }}>
-                ▾
-              </span>
-              Ver horários desta paragem
-            </div>
-            {showSchedules && (
-              <div style={{
-                marginTop: 10,
-                background: '#141414',
-                padding: 10,
-                borderRadius: 10
-              }}>
-                <div style={{
-                  color: '#5CB130',
-                  fontWeight: 600,
-                  marginBottom: 8,
-                  fontSize: 13
-                }}>
-                  Linha {result.best.line}
-                </div>
+{result?.best && (
+<div style={{
+  marginTop: 20,
+  background: '#1a1a1a',
+  padding: isMobile ? 12 : 16,
+  borderRadius: 12,
+  borderLeft: `4px solid ${result.best.color}`
+}}>
+  
+  {/* DESTINO */}
+  <div style={{
+    color: '#fff',
+    fontWeight: 700,
+    fontSize: isMobile ? 18 : 22,
+    lineHeight: 1.2
+  }}>
+    🎯 {result.originalPlace || result.destination.name}
+  </div>
 
-                <div style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: 6
-                }}>
-                  {(result.best.stop.schedules || []).map((time: string, i: number) => (
-                    <div key={i} style={{
-                      background: '#2a2a2a',
-                      padding: '6px 10px',
-                      borderRadius: 6,
-                      fontSize: 12,
-                      color: '#fff'
-                    }}>
-                      {time}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            <button
-              onClick={() => navigate(`/?lat=${result.best.stop.coordinates.latitude}&lng=${result.best.stop.coordinates.longitude}`)}
-              style={{
-                marginTop: 12,
-                padding: 10,
-                borderRadius: 10,
-                background: '#5CB130',
-                color: '#fff',
-                width: '100%',
-                fontWeight: 700,
-                border: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              🧭 Ver parada no mapa
-            </button>
-          </div>
+  <div style={{
+    color: '#888',
+    marginTop: 4,
+    fontSize: isMobile ? 12 : 14
+  }}>
+    A partir da tua localização atual
+  </div>
 
-          {result.alternatives.length > 0 && (
-            <div style={{ marginTop: 16 }}>
-              <div style={{ color: '#aaa', fontSize: 13, marginBottom: 8 }}>
-                🔄 ALTERNATIVAS
-              </div>
-              
-              {result.alternatives.map((alt: any, i: number) => (
-                <div key={i} style={{
-                  background: '#141414',
-                  padding: 12,
-                  borderRadius: 10,
-                  marginTop: 8,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}>
-                  <div>
-                    <div style={{ color: '#fff', fontSize: 14 }}>
-                      {alt.stop.name}
-                    </div>
+  {/* CARD PRINCIPAL */}
+  <div style={{
+    marginTop: 16,
+    background: '#0D0D0D',
+    padding: isMobile ? 12 : 16,
+    borderRadius: 12
+  }}>
 
-                    <div style={{ display: 'flex', gap: 12, marginTop: 6, flexWrap: 'wrap' }}>
-                      <div style={{ background: alt.color, padding: '2px 6px', borderRadius: 4, fontSize: 11 }}>
-                        {alt.line}
-                      </div>
-                      <div style={{ color: '#aaa', fontSize: 12 }}>
-                        🚶 {alt.walkingToStop} min
-                      </div>
-                      <div style={{ color: '#aaa', fontSize: 12 }}>
-                        🚌 {alt.waitingTime} min
-                      </div>
-                      <div style={{ color: '#5CB130', fontSize: 12, fontWeight: 600 }}>
-                        Total: {alt.totalTime} min
-                      </div>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() =>
-                      navigate(`/?lat=${alt.stop.coordinates.latitude}&lng=${alt.stop.coordinates.longitude}`)
-                    }
-                    style={{
-                      background: '#5CB130',
-                      border: 'none',
-                      borderRadius: 8,
-                      padding: '8px 12px',
-                      color: '#fff',
-                      fontSize: 12,
-                      fontWeight: 600,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Ir
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+    <div style={{
+      color: '#5CB130',
+      fontWeight: 700,
+      marginBottom: 14,
+      fontSize: isMobile ? 13 : 15
+    }}>
+     ⭐ Melhor forma de chegar agora
     </div>
-  )
+
+{/* PASSOS */}
+<div style={{
+  display: 'grid',
+  gridTemplateColumns:
+    isMobile
+      ? '1fr'
+      : 'repeat(3, 1fr)',
+  gap: 14,
+  marginTop: 14
+}}>
+
+  {/* PASSO 1 */}
+  <div style={{
+    transition: 'all 0.25s ease',
+cursor: 'pointer',
+animation: 'fadeUp 0.4s ease',
+    background: '#141414',
+    borderRadius: 14,
+    padding: isMobile ? 14 : 22,
+    border: '1px solid #222',
+
+    display: 'flex',
+    flexDirection:
+isMobile        ? 'row'
+        : 'column',
+
+    alignItems:
+isMobile        ? 'center'
+        : 'flex-start',
+
+    gap: isMobile ? 14 : 18,
+
+    minHeight:
+      isMobile
+        ? 'unset'
+        : 240
+  }}
+  
+   onMouseEnter={(e) => {
+    if (isMobile) return
+
+    e.currentTarget.style.transform = 'translateY(-4px)'
+    e.currentTarget.style.borderColor = '#5CB130'
+    e.currentTarget.style.boxShadow = '0 0 18px rgba(92,177,48,0.25)'
+  }}
+
+  onMouseLeave={(e) => {
+    if (isMobile) return
+
+    e.currentTarget.style.transform = 'translateY(0px)'
+    e.currentTarget.style.borderColor = '#222'
+    e.currentTarget.style.boxShadow = 'none'
+  }}>
+
+    
+
+    <div style={{
+      fontSize: isMobile ? 28 : 42,
+      flexShrink: 0
+    }}>
+      🚶
+    </div>
+
+    <div>
+
+      <div style={{
+        color: '#777',
+        fontSize: 10,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        marginBottom: 8
+      }}>
+        Passo 1
+      </div>
+
+      <div style={{
+        color: '#fff',
+        fontWeight: 700,
+        fontSize: isMobile ? 18 : 28,
+        lineHeight: 1.1
+      }}>
+        Caminha {result.best.walkingToStop} min
+      </div>
+
+      <div style={{
+        color: '#5CB130',
+        marginTop: 8,
+        fontWeight: 600,
+        fontSize: isMobile ? 13 : 16
+      }}>
+        {result.best.stop.name}
+      </div>
+
+    </div>
+  </div>
+
+  {/* PASSO 2 */}
+  <div style={{
+    transition: 'all 0.25s ease',
+cursor: 'pointer',
+animation: 'fadeUp 0.4s ease',
+    background: '#141414',
+    borderRadius: 14,
+    padding: isMobile ? 14 : 22,
+    border: '1px solid #222',
+
+    display: 'flex',
+    flexDirection:
+     isMobile
+        ? 'row'
+        : 'column',
+
+    alignItems:
+      isMobile
+        ? 'center'
+        : 'flex-start',
+
+    gap: isMobile ? 14 : 18,
+
+    minHeight:
+      isMobile
+        ? 'unset'
+        : 240
+  }}  onMouseEnter={(e) => {
+    if (isMobile) return
+
+    e.currentTarget.style.transform = 'translateY(-4px)'
+    e.currentTarget.style.borderColor = '#5CB130'
+    e.currentTarget.style.boxShadow = '0 0 18px rgba(92,177,48,0.25)'
+  }}
+
+  onMouseLeave={(e) => {
+    if (isMobile) return
+
+    e.currentTarget.style.transform = 'translateY(0px)'
+    e.currentTarget.style.borderColor = '#222'
+    e.currentTarget.style.boxShadow = 'none'
+  }}>
+
+    <div style={{
+      fontSize: isMobile ? 28 : 42,
+      flexShrink: 0
+    }}>
+      🚌
+    </div>
+
+    <div>
+
+      <div style={{
+        color: '#777',
+        fontSize: 10,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        marginBottom: 8
+      }}>
+        Passo 2
+      </div>
+
+      <div style={{
+        color: '#fff',
+        fontWeight: 800,
+        fontSize: isMobile ? 28 : 44,
+        lineHeight: 1
+      }}>
+        {result.best.nextBus.inactive
+  ? result.best.nextBus.time
+  : result.best.nextBus.time}
+      </div>
+
+      <div style={{
+        color: '#fff',
+        marginTop: 10,
+        fontWeight: 600,
+        fontSize: isMobile ? 14 : 18
+      }}>
+        Linha {result.best.line}
+      </div>
+
+<div style={{
+  color:
+    result.best.nextBus.inactive
+      ? '#ff6666'
+      : result.best.waitingTime <= 5
+      ? '#ff6666'
+      : result.best.waitingTime <= 10
+      ? '#ffcc66'
+      : '#888',
+
+  marginTop: 8,
+  fontSize: isMobile ? 12 : 14,
+  fontWeight: 600,
+
+  animation:
+    result.best.waitingTime <= 5
+      ? 'pulse 1.5s infinite'
+      : 'none',
+}}>
+
+  {result.best.nextBus.inactive
+    ? 'Consulta horários amanhã'
+    : result.best.waitingTime <= 5
+    ? `Chega em ${result.best.waitingTime} min`
+    : `Daqui a ${result.best.waitingTime} min`}
+</div>
+
+    </div>
+  </div>
+
+  {/* PASSO 3 */}
+  <div style={{
+    transition: 'all 0.25s ease',
+cursor: 'pointer',
+animation: 'fadeUp 0.4s ease',
+    background: '#141414',
+    borderRadius: 14,
+    padding: isMobile ? 14 : 22,
+    border: '1px solid #222',
+
+    display: 'flex',
+    flexDirection:
+      isMobile
+        ? 'row'
+        : 'column',
+
+    alignItems:
+      isMobile
+        ? 'center'
+        : 'flex-start',
+
+    gap: isMobile ? 14 : 18,
+
+    minHeight:
+      isMobile
+        ? 'unset'
+        : 240
+  }} onMouseEnter={(e) => {
+    if (isMobile) return
+
+    e.currentTarget.style.transform = 'translateY(-4px)'
+    e.currentTarget.style.borderColor = '#5CB130'
+    e.currentTarget.style.boxShadow = '0 0 18px rgba(92,177,48,0.25)'
+  }}
+
+  onMouseLeave={(e) => {
+    if (isMobile) return
+
+    e.currentTarget.style.transform = 'translateY(0px)'
+    e.currentTarget.style.borderColor = '#222'
+    e.currentTarget.style.boxShadow = 'none'
+  }}>
+
+    <div style={{
+      fontSize: isMobile ? 28 : 42,
+      flexShrink: 0
+    }}>
+      🎯
+    </div>
+
+    <div>
+
+      <div style={{
+        color: '#777',
+        fontSize: 10,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        marginBottom: 8
+      }}>
+        Passo 3
+      </div>
+
+      <div style={{
+        color: '#fff',
+        fontWeight: 700,
+        fontSize: isMobile ? 18 : 28,
+        lineHeight: 1.1
+      }}>
+        Chegada ao destino
+      </div>
+
+      <div style={{
+        color: '#5CB130',
+        marginTop: 8,
+        fontWeight: 600,
+        fontSize: isMobile ? 13 : 16,
+        lineHeight: 1.3
+      }}>
+        {result.originalPlace || result.destination.name}
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+{/* RESUMEN */}
+<div style={{
+  marginTop: 18,
+  background: '#141414',
+  borderRadius: 10,
+  padding: isMobile ? 12 : 16,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 10
+}}>
+
+  <div style={{
+    color: '#5CB130',
+    fontWeight: 700,
+    fontSize: isMobile ? 15 : 16
+  }}>
+    🎯 Chegas por volta das {(() => {
+      const now = new Date()
+      now.setMinutes(now.getMinutes() + result.best.totalTime)
+
+      return now.toLocaleTimeString('pt-PT', {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    })()}
+  </div>
+
+  <div style={{
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: 12
+  }}>
+
+    <div style={{
+      color: '#5CB130',
+      fontWeight: 600,
+      fontSize: isMobile ? 13 : 14
+    }}>
+      🚶 {result.best.walkingToStop} min a pé
+    </div>
+
+    <div style={{
+      color: '#fff',
+      fontWeight: 600,
+      fontSize: isMobile ? 13 : 14
+    }}>
+      🕒 Passa às {result.best.nextBus.time}
+    </div>
+
+    <div style={{
+      color: '#5CB130',
+      fontWeight: 700,
+      fontSize: isMobile ? 13 : 14
+    }}>
+      ⏱️ {result.best.totalTime} min total
+    </div>
+
+  </div>
+</div>
+
+    {/* HORARIOS */}
+    <div
+      onClick={() => setShowSchedules(!showSchedules)}
+      style={{
+        marginTop: 14,
+        fontSize: isMobile ? 12 : 13,
+        color: '#aaa',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6
+      }}
+    >
+      <span style={{
+        transform: showSchedules ? 'rotate(180deg)' : 'rotate(0deg)',
+        transition: '0.2s'
+      }}>
+        ▾
+      </span>
+
+      Ver horários desta paragem
+    </div>
+
+    {showSchedules && (
+      <div style={{
+        marginTop: 10,
+        background: '#141414',
+        padding: 10,
+        borderRadius: 10
+      }}>
+        <div style={{
+          color: '#5CB130',
+          fontWeight: 600,
+          marginBottom: 8,
+          fontSize: 13
+        }}>
+          Linha {result.best.line}
+        </div>
+
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 6
+        }}>
+          {(result.best.stop.schedules || []).map((time: string, i: number) => (
+            <div key={i} style={{
+              background: '#2a2a2a',
+              padding: '5px 8px',
+              borderRadius: 6,
+              fontSize: 11,
+              color: '#fff'
+            }}>
+              {time}
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {/* BOTON */}
+<button
+  onClick={() =>
+    navigate(`/?lat=${result.best.stop.coordinates.latitude}&lng=${result.best.stop.coordinates.longitude}`)
+  }
+
+  onMouseEnter={(e) => {
+    if (isMobile) return
+    e.currentTarget.style.transform = 'scale(1.02)'
+  }}
+
+  onMouseLeave={(e) => {
+    if (isMobile) return
+    e.currentTarget.style.transform = 'scale(1)'
+  }}
+
+  style={{
+    marginTop: 16,
+    padding: isMobile ? 11 : 12,
+    borderRadius: 10,
+
+    background: 'linear-gradient(135deg, #5CB130, #6ddc2f)',
+
+    color: '#fff',
+    width: '100%',
+    fontWeight: 700,
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: isMobile ? 13 : 14,
+
+    transition: 'all 0.2s ease',
+    boxShadow: '0 6px 18px rgba(92,177,48,0.25)',
+  }}
+>
+  🧭 Ver percurso no mapa
+</button>
+  </div>
+
+  {/* ALTERNATIVAS */}
+  {result.alternatives.length > 0 && (
+    <div style={{ marginTop: 18 }}>
+      <div style={{
+        color: '#aaa',
+        fontSize: 13,
+        marginBottom: 10
+      }}>
+        🔄 Também podes ir por aqui
+      </div>
+
+      {result.alternatives.map((alt: any, i: number) => (
+        <div
+  key={i}
+
+  onMouseEnter={(e) => {
+    if (isMobile) return
+
+    e.currentTarget.style.borderColor = '#5CB130'
+    e.currentTarget.style.transform = 'translateY(-2px)'
+  }}
+
+  onMouseLeave={(e) => {
+    if (isMobile) return
+
+    e.currentTarget.style.borderColor = 'transparent'
+    e.currentTarget.style.transform = 'translateY(0px)'
+  }}
+
+  style={{
+    transition: 'all 0.2s ease',
+cursor: 'pointer',
+border: '1px solid transparent',
+
+          background: '#141414',
+          padding: isMobile ? 10 : 14,
+          borderRadius: 10,
+          marginTop: 10,
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          gap: 12,
+          justifyContent: 'space-between'
+        }}>
+          <div>
+            <div style={{
+              color: '#fff',
+              fontWeight: 600,
+              fontSize: isMobile ? 13 : 14
+            }}>
+              📍 {alt.stop.name}
+            </div>
+
+            <div style={{
+              marginTop: 8,
+              display: 'flex',
+              gap: 8,
+              flexWrap: 'wrap'
+            }}>
+              <div style={{
+                background: alt.color,
+                padding: '3px 7px',
+                borderRadius: 6,
+                fontSize: 10,
+                fontWeight: 700
+              }}>
+                Linha {alt.line}
+              </div>
+
+              <div style={{
+                color: '#aaa',
+                fontSize: 11
+              }}>
+                🚶 {alt.walkingToStop} min
+              </div>
+
+              <div style={{
+                color: '#aaa',
+                fontSize: 11
+              }}>
+                🕒 {alt.nextBus.time} • {alt.waitingTime} min
+              </div>
+
+              <div style={{
+                color: '#5CB130',
+                fontSize: 11,
+                fontWeight: 700
+              }}>
+                ⏱️ {alt.totalTime} min
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() =>
+              navigate(`/?lat=${alt.stop.coordinates.latitude}&lng=${alt.stop.coordinates.longitude}`)
+            }
+            style={{
+              background: '#5CB130',
+              border: 'none',
+              borderRadius: 8,
+              padding: '10px 12px',
+              color: '#fff',
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: 'pointer',
+              width: isMobile ? '100%' : 'auto'
+            }}
+          >
+            Ver
+          </button>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+)}
+
+
+
+
+</div>
+</>
+)
+  
 }

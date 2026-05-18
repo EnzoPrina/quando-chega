@@ -63,10 +63,15 @@ styleSheet.textContent = `
       transform: translateX(-50%) translateY(0);
     }
   }
-  button:hover {
-    transform: scale(1.02);
-    opacity: 0.95;
-  }
+button:hover {
+  transform: translateY(-1px) scale(1.02);
+  opacity: 0.96;
+  box-shadow: 0 8px 20px rgba(92,177,48,0.2);
+}
+
+button {
+  transition: all 0.2s ease;
+}
   .leaflet-popup {
     bottom: 20px !important;
   }
@@ -139,7 +144,9 @@ function FlyTo({ position }: { position: [number, number] | null }) {
 
   useEffect(() => {
     if (position) {
-      map.flyTo(position, 17)
+      map.flyTo(position, 18, {
+  duration: 1.5
+})
     }
   }, [position])
 
@@ -442,7 +449,9 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
         )}
         
         {!weekend && nextBuses.map((bus, idx) => (
-          <div key={idx} style={{
+          <div
+  key={idx}
+style={{
             background: '#0D0D0D',
             padding: isMobile ? 8 : 8,
             borderRadius: 8,
@@ -532,7 +541,9 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
                 if (schedules.length === 0) return null
                 
                 return (
-                  <div key={idx} style={{ marginBottom: 10 }}>
+                  <div
+  key={idx}
+ style={{ marginBottom: 10 }}>
                     <div style={{ 
                       background: lineInfo.color, 
                       display: 'inline-block',
@@ -579,7 +590,9 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {destinations.slice(0, isMobile ? 3 : 4).map((dest, idx) => (
-              <div key={idx} style={{
+              <div
+  key={idx}
+ style={{
                 background: '#0D0D0D',
                 padding: '8px 10px',
                 borderRadius: 8,
@@ -658,6 +671,7 @@ function StopPopupContent({ stop, city, favorites, onToggleFavorite, onPlanTrip,
 }
 
 export default function MapView() {
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null)
   const [position, setPosition] = useState<[number, number]>(DEFAULT_POSITION)
   const [loadingLocation, setLoadingLocation] = useState(true)
   const [selectedStop, setSelectedStop] = useState<[number, number] | null>(null)
@@ -666,7 +680,7 @@ export default function MapView() {
   const [favorites, setFavorites] = useState<string[]>([])
   const [showLineDrawer, setShowLineDrawer] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
-
+const [activeStop, setActiveStop] = useState<string | null>(null)
   const navigate = useNavigate()
   const location = useLocation()
   const params = new URLSearchParams(location.search)
@@ -734,24 +748,61 @@ export default function MapView() {
     navigate(`/planner?lat=${lat}&lng=${lng}`)
   }
 
-  const createCustomIcon = (color: string, number?: number, isFav?: boolean) =>
-    L.divIcon({
-      className: '',
-      html: `<div style="
+const createCustomIcon = (
+  lines: any[],
+  number?: number,
+  isFav?: boolean
+) =>
+  L.divIcon({
+    className: '',
+    html: `
+      <div style="
         display:flex;
+        flex-direction:column;
         align-items:center;
-        justify-content:center;
-        width:${isMobile ? 38 : 28}px;
-        height:${isMobile ? 38 : 28}px;
-        background:${isFav ? '#FFD700' : color};
-        border-radius:50%;
-        border:3px solid white;
-        font-size:${isMobile ? 15 : 12}px;
-        font-weight:700;
-        color:${isFav ? '#000' : '#fff'};
-        box-shadow:0 2px 8px rgba(0,0,0,0.2);
-      ">${number ?? ''}</div>`,
-    })
+        gap:2px;
+      ">
+
+        <div style="
+          display:flex;
+          gap:2px;
+          justify-content:center;
+        ">
+          ${lines
+            .map(
+              (line) => `
+                <div style="
+                  width:10px;
+                  height:10px;
+                  border-radius:50%;
+                  background:${line.color};
+                  border:1px solid white;
+                "></div>
+              `
+            )
+            .join('')}
+        </div>
+
+        <div style="
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          width:${isMobile ? 34 : 28}px;
+          height:${isMobile ? 34 : 28}px;
+          background:${isFav ? '#FFD700' : lines[0].color};
+          border-radius:50%;
+          border:3px solid white;
+          color:${isFav ? '#000' : '#fff'};
+          font-weight:700;
+          font-size:${isMobile ? 14 : 11}px;
+          box-shadow:0 2px 8px rgba(0,0,0,0.25);
+        ">
+          ${number ?? ''}
+        </div>
+
+      </div>
+    `,
+  })
 
   const createPlaceIcon = () =>
     L.divIcon({
@@ -1058,15 +1109,17 @@ export default function MapView() {
         </div>
       )}
 
-      <div style={{ display: 'none' }}>
+      <div >
         <FavoriteStops
           stops={groupedStops.filter((s) => favorites.includes(s.number))}
-          onSelect={(stop: any) =>
-            setSelectedStop([
-              stop.coordinates.latitude,
-              stop.coordinates.longitude,
-            ])
-          }
+          onSelect={(stop: any) => {
+  setSelectedStop([
+    stop.coordinates.latitude,
+    stop.coordinates.longitude,
+  ])
+
+  setActiveStop(stop.number)
+}}
         />
       </div>
 
@@ -1102,10 +1155,19 @@ export default function MapView() {
           const isFav = favorites.includes(stop.number)
 
           return (
-            <Marker
-              key={i}
-              position={[stop.coordinates.latitude, stop.coordinates.longitude]}
-              icon={createCustomIcon(mainLine.color, mainLine.order, isFav)}
+<Marker
+  key={i}
+  position={[stop.coordinates.latitude, stop.coordinates.longitude]}
+  icon={createCustomIcon(
+  stop.lines,
+  mainLine.order,
+  isFav
+)}
+  ref={(ref) => {
+    if (ref && activeStop === stop.number) {
+      ref.openPopup()
+    }
+  }}
               eventHandlers={{
                 click: () => {
                   setPopupPosition([stop.coordinates.latitude, stop.coordinates.longitude])
@@ -1186,10 +1248,13 @@ export default function MapView() {
           paddingRight: 16,
         }}>
           {nearbyStops.map((stop, idx) => {
+            
             const isFav = favorites.includes(stop.number)
             return (
               <div
-                key={idx}
+                key={idx} 
+                onMouseEnter={() => setHoveredCard(idx)}
+                onMouseLeave={() => setHoveredCard(null)}
                 onClick={() =>
                   setSelectedStop([
                     stop.coordinates.latitude,
@@ -1202,9 +1267,18 @@ export default function MapView() {
                   borderRadius: 16,
                   padding: 12,
                   cursor: 'pointer',
-                  transition: 'all 0.2s',
+transition: 'all 0.25s ease',
+transform:
+  hoveredCard === idx
+    ? 'translateY(-4px)'
+    : 'translateY(0px)',
+
+boxShadow:
+  hoveredCard === idx
+    ? '0 10px 25px rgba(92,177,48,0.25)'
+    : '0 4px 12px rgba(0,0,0,0.2)',
                   border: '1px solid rgba(255,255,255,0.1)',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                  
                   ...poppinsStyle,
                 }}
               >
