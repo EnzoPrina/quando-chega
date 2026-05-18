@@ -679,6 +679,7 @@ export default function MapView() {
   const [selectedLine, setSelectedLine] = useState<string | null>(null)
   const [favorites, setFavorites] = useState<string[]>([])
   const [showLineDrawer, setShowLineDrawer] = useState(false)
+  const [showNearbyStops, setShowNearbyStops] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
 const [activeStop, setActiveStop] = useState<string | null>(null)
   const navigate = useNavigate()
@@ -1226,9 +1227,38 @@ const createCustomIcon = (
           </Marker>
         ))}
       </MapContainer>
+<div
+  onClick={() => setShowNearbyStops(!showNearbyStops)}
+  style={{
+    position: 'fixed',
+    bottom: isMobile ? 85 : 95,
+    left: '50%',
+    transform: 'translateX(-50%)',
+    zIndex: 1500,
+    background: 'rgba(20,20,25,0.92)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    padding: '10px 18px',
+    borderRadius: 40,
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: 600,
+    cursor: 'pointer',
+    border: '1px solid rgba(255,255,255,0.1)',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+    whiteSpace: 'nowrap',
+    ...poppinsStyle
+  }}
+>
+  {showNearbyStops
+    ? '⬇ Esconder paragens'
+    : `🚏 ${nearbyStops.length} paragens próximas`}
+</div>
 
-      {/* NearbyStops con información de fin de semana */}
-      <div style={{
+
+{/* NearbyStops con información de fin de semana */}
+{showNearbyStops && (
+<div style={{
         position: 'fixed',
         bottom: isMobile ? 85 : 95,
         left: 0,
@@ -1383,7 +1413,7 @@ boxShadow:
           })}
         </div>
       </div>
-
+)}
       <style>{`
         div::-webkit-scrollbar {
           display: none;
